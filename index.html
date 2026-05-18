@@ -3,157 +3,86 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Contas a Pagar — Liparini</title>
+<title>Contas a Pagar</title>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.19.0/dist/tabler-icons.min.css">
 <style>
-  :root {
-    --bg: #f7f6f3;
-    --surface: #ffffff;
-    --surface2: #f1f0ed;
-    --border: rgba(0,0,0,0.1);
-    --border2: rgba(0,0,0,0.18);
-    --text: #1a1a18;
-    --text2: #6b6a65;
-    --text3: #9b9a95;
-    --blue: #185FA5;
-    --blue-bg: #E6F1FB;
-    --green: #1D9E75;
-    --green-bg: #EAF3DE;
-    --green-text: #3B6D11;
-    --amber: #854F0B;
-    --amber-bg: #FAEEDA;
-    --red: #A32D2D;
-    --red-bg: #FCEBEB;
-    --radius: 8px;
-    --radius-lg: 12px;
-  }
-  @media (prefers-color-scheme: dark) {
-    :root {
-      --bg: #1a1a18;
-      --surface: #252522;
-      --surface2: #2e2e2b;
-      --border: rgba(255,255,255,0.1);
-      --border2: rgba(255,255,255,0.18);
-      --text: #f0efe9;
-      --text2: #a09f99;
-      --text3: #6b6a65;
-      --blue: #85B7EB;
-      --blue-bg: #042C53;
-      --green: #5DCAA5;
-      --green-bg: #04342C;
-      --green-text: #9FE1CB;
-      --amber: #FAC775;
-      --amber-bg: #412402;
-      --red: #F09595;
-      --red-bg: #501313;
-    }
-  }
-  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-  html { font-size: 16px; }
-  body { background: var(--bg); color: var(--text); font-family: -apple-system, 'Segoe UI', system-ui, sans-serif; min-height: 100vh; }
-
-  .app { max-width: 860px; margin: 0 auto; padding: 1.5rem 1rem 3rem; }
-
-  /* HEADER */
-  .app-header { margin-bottom: 1.25rem; }
-  .app-header h1 { font-size: 22px; font-weight: 600; display: flex; align-items: center; gap: 8px; }
-  .app-header h1 i { font-size: 22px; color: var(--blue); }
-  .app-header p { font-size: 13px; color: var(--text2); margin-top: 3px; }
-  .header-row { display: flex; align-items: flex-start; justify-content: space-between; flex-wrap: wrap; gap: 8px; }
-  .sync-info { font-size: 12px; color: var(--text3); display: flex; align-items: center; gap: 5px; margin-top: 6px; }
-
-  /* TOOLBAR */
-  .toolbar { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-bottom: 1rem; }
-  .filter-group { display: flex; background: var(--surface2); border-radius: var(--radius); border: 0.5px solid var(--border); overflow: hidden; flex-shrink: 0; }
-  .filter-btn { padding: 6px 14px; font-size: 13px; background: transparent; border: none; cursor: pointer; color: var(--text2); transition: all 0.15s; font-family: inherit; }
-  .filter-btn.active { background: var(--surface); color: var(--text); font-weight: 500; box-shadow: 0 0 0 0.5px var(--border2) inset; }
-  .search-wrap { position: relative; flex: 1; min-width: 160px; }
-  .search-wrap i { position: absolute; left: 9px; top: 50%; transform: translateY(-50%); color: var(--text3); font-size: 15px; pointer-events: none; }
-  .search-input { width: 100%; padding: 6px 10px 6px 30px; font-size: 13px; border-radius: var(--radius); border: 0.5px solid var(--border); background: var(--surface); color: var(--text); font-family: inherit; outline: none; }
-  .search-input:focus { border-color: var(--border2); }
-  .month-nav { display: flex; align-items: center; gap: 4px; flex-shrink: 0; }
-  .nav-btn { background: var(--surface); border: 0.5px solid var(--border); border-radius: var(--radius); padding: 5px 9px; cursor: pointer; color: var(--text2); font-size: 16px; display: flex; align-items: center; transition: border-color 0.15s; }
-  .nav-btn:hover { border-color: var(--border2); }
-  .month-label { font-size: 13px; font-weight: 500; min-width: 120px; text-align: center; color: var(--text); }
-  .refresh-btn { background: var(--surface); border: 0.5px solid var(--border); border-radius: var(--radius); padding: 6px 12px; cursor: pointer; font-size: 13px; color: var(--text2); display: flex; align-items: center; gap: 5px; font-family: inherit; transition: border-color 0.15s; flex-shrink: 0; }
-  .refresh-btn:hover { border-color: var(--border2); color: var(--text); }
-  .refresh-btn.loading i { animation: spin 0.8s linear infinite; }
-  @keyframes spin { to { transform: rotate(360deg); } }
-
-  /* SUMMARY */
-  .summary { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-bottom: 1.25rem; }
-  @media (max-width: 600px) { .summary { grid-template-columns: repeat(2, 1fr); } }
-  .stat { background: var(--surface); border: 0.5px solid var(--border); border-radius: var(--radius-lg); padding: 12px 14px; }
-  .stat-label { font-size: 11px; color: var(--text2); text-transform: uppercase; letter-spacing: 0.05em; }
-  .stat-val { font-size: 17px; font-weight: 600; color: var(--text); margin-top: 3px; line-height: 1.2; }
-  .stat-val.c-red { color: var(--red); }
-  .stat-val.c-green { color: var(--green); }
-  .stat-val.c-amber { color: var(--amber); }
-
-  /* PROGRESS BAR */
-  .progress-wrap { margin-bottom: 1.25rem; }
-  .progress-header { display: flex; justify-content: space-between; font-size: 12px; color: var(--text2); margin-bottom: 5px; }
-  .progress-bar { height: 6px; background: var(--surface2); border-radius: 100px; overflow: hidden; }
-  .progress-fill { height: 100%; background: var(--green); border-radius: 100px; transition: width 0.4s ease; }
-
-  /* LISTS */
-  .day-group { margin-bottom: 1.25rem; }
-  .day-label { font-size: 11px; font-weight: 600; color: var(--text3); text-transform: uppercase; letter-spacing: 0.07em; padding: 0 2px 6px; display: flex; align-items: center; gap: 6px; border-bottom: 0.5px solid var(--border); margin-bottom: 6px; }
-  .day-label .dot { width: 5px; height: 5px; border-radius: 50%; background: var(--border2); flex-shrink: 0; }
-  .day-label.lbl-today .dot { background: var(--blue); }
-  .day-label.lbl-today { color: var(--blue); }
-  .day-label.lbl-overdue .dot { background: var(--red); }
-  .day-label.lbl-overdue { color: var(--red); }
-
-  .bill-card { background: var(--surface); border: 0.5px solid var(--border); border-radius: var(--radius-lg); padding: 10px 14px; margin-bottom: 5px; display: flex; align-items: center; gap: 10px; cursor: pointer; transition: border-color 0.15s, opacity 0.2s; user-select: none; }
-  .bill-card:hover { border-color: var(--border2); }
-  .bill-card.paid { opacity: 0.5; }
-  .bill-card.overdue { border-left: 3px solid var(--red); }
-  .bill-card.due-today { border-left: 3px solid var(--blue); }
-  .bill-card.due-soon { border-left: 3px solid var(--amber); }
-
-  .check-btn { width: 22px; height: 22px; border-radius: 50%; border: 1.5px solid var(--border2); background: transparent; cursor: pointer; display: flex; align-items: center; justify-content: center; flex-shrink: 0; transition: all 0.15s; }
-  .check-btn.checked { background: var(--green); border-color: var(--green); }
-  .check-btn i { font-size: 12px; color: white; opacity: 0; transition: opacity 0.15s; }
-  .check-btn.checked i { opacity: 1; }
-
-  .bill-info { flex: 1; min-width: 0; }
-  .bill-name { font-size: 14px; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; transition: text-decoration 0.15s; }
-  .bill-card.paid .bill-name { text-decoration: line-through; color: var(--text2); }
-  .bill-sub { font-size: 12px; color: var(--text2); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-top: 1px; }
-
-  .bill-right { display: flex; flex-direction: column; align-items: flex-end; gap: 4px; flex-shrink: 0; }
-  .bill-value { font-size: 14px; font-weight: 600; }
-  .bill-value.var { font-size: 12px; color: var(--text2); font-style: italic; font-weight: 400; }
-  .pills { display: flex; gap: 4px; flex-wrap: wrap; justify-content: flex-end; }
-  .pill { font-size: 10px; padding: 2px 7px; border-radius: 100px; font-weight: 500; white-space: nowrap; }
-  .pill-bank { background: var(--surface2); color: var(--text2); border: 0.5px solid var(--border); }
-  .pill-paid { background: var(--green-bg); color: var(--green-text); }
-  .pill-overdue { background: var(--red-bg); color: var(--red); }
-  .pill-today { background: var(--blue-bg); color: var(--blue); }
-  .pill-soon { background: var(--amber-bg); color: var(--amber); }
-
-  .empty { text-align: center; padding: 3rem 1rem; color: var(--text2); font-size: 14px; }
-  .empty i { font-size: 32px; display: block; margin: 0 auto 8px; color: var(--text3); }
-
-  /* MODAL */
-  .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.4); display: flex; align-items: center; justify-content: center; z-index: 100; padding: 1rem; opacity: 0; pointer-events: none; transition: opacity 0.2s; }
-  .modal-overlay.open { opacity: 1; pointer-events: all; }
-  .modal { background: var(--surface); border-radius: var(--radius-lg); padding: 1.5rem; max-width: 440px; width: 100%; border: 0.5px solid var(--border2); }
-  .modal h2 { font-size: 16px; font-weight: 600; margin-bottom: 1rem; }
-  .modal-row { display: flex; justify-content: space-between; padding: 7px 0; border-bottom: 0.5px solid var(--border); font-size: 13px; }
-  .modal-row:last-of-type { border-bottom: none; }
-  .modal-label { color: var(--text2); }
-  .modal-val { font-weight: 500; max-width: 220px; text-align: right; }
-  .modal-close { margin-top: 1rem; width: 100%; padding: 8px; background: var(--surface2); border: 0.5px solid var(--border); border-radius: var(--radius); cursor: pointer; font-size: 13px; font-family: inherit; color: var(--text); transition: background 0.15s; }
-  .modal-close:hover { background: var(--border); }
-
-  .toast { position: fixed; bottom: 1.5rem; left: 50%; transform: translateX(-50%) translateY(20px); background: var(--text); color: var(--bg); padding: 8px 18px; border-radius: 100px; font-size: 13px; opacity: 0; transition: all 0.25s; pointer-events: none; z-index: 200; white-space: nowrap; }
-  .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+:root{--bg:#f7f6f3;--surface:#fff;--surface2:#f1f0ed;--border:rgba(0,0,0,.1);--border2:rgba(0,0,0,.18);--text:#1a1a18;--text2:#6b6a65;--text3:#9b9a95;--blue:#185FA5;--blue-bg:#E6F1FB;--green:#1D9E75;--green-bg:#EAF3DE;--green-text:#3B6D11;--amber:#854F0B;--amber-bg:#FAEEDA;--red:#A32D2D;--red-bg:#FCEBEB;--r:8px;--rl:12px}
+@media(prefers-color-scheme:dark){:root{--bg:#1a1a18;--surface:#252522;--surface2:#2e2e2b;--border:rgba(255,255,255,.1);--border2:rgba(255,255,255,.18);--text:#f0efe9;--text2:#a09f99;--text3:#6b6a65;--blue:#85B7EB;--blue-bg:#042C53;--green:#5DCAA5;--green-bg:#04342C;--green-text:#9FE1CB;--amber:#FAC775;--amber-bg:#412402;--red:#F09595;--red-bg:#501313}}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--text);font-family:-apple-system,'Segoe UI',system-ui,sans-serif;min-height:100vh}
+.app{max-width:860px;margin:0 auto;padding:1.5rem 1rem 3rem}
+.header-row{display:flex;align-items:flex-start;justify-content:space-between;flex-wrap:wrap;gap:8px;margin-bottom:1.25rem}
+.app-header h1{font-size:22px;font-weight:600;display:flex;align-items:center;gap:8px}
+.app-header h1 i{font-size:22px;color:var(--blue)}
+.app-header p{font-size:13px;color:var(--text2);margin-top:3px}
+.sync-info{font-size:12px;color:var(--text3);display:flex;align-items:center;gap:5px;margin-top:6px}
+.toolbar{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:1rem}
+.filter-group{display:flex;background:var(--surface2);border-radius:var(--r);border:.5px solid var(--border);overflow:hidden;flex-shrink:0}
+.filter-btn{padding:6px 14px;font-size:13px;background:transparent;border:none;cursor:pointer;color:var(--text2);transition:all .15s;font-family:inherit}
+.filter-btn.active{background:var(--surface);color:var(--text);font-weight:500;box-shadow:0 0 0 .5px var(--border2) inset}
+.search-wrap{position:relative;flex:1;min-width:160px}
+.search-wrap i{position:absolute;left:9px;top:50%;transform:translateY(-50%);color:var(--text3);font-size:15px;pointer-events:none}
+.search-input{width:100%;padding:6px 10px 6px 30px;font-size:13px;border-radius:var(--r);border:.5px solid var(--border);background:var(--surface);color:var(--text);font-family:inherit;outline:none}
+.month-nav{display:flex;align-items:center;gap:4px;flex-shrink:0}
+.nav-btn{background:var(--surface);border:.5px solid var(--border);border-radius:var(--r);padding:5px 9px;cursor:pointer;color:var(--text2);font-size:16px;display:flex;align-items:center;transition:border-color .15s}
+.month-label{font-size:13px;font-weight:500;min-width:120px;text-align:center}
+.refresh-btn{background:var(--surface);border:.5px solid var(--border);border-radius:var(--r);padding:6px 12px;cursor:pointer;font-size:13px;color:var(--text2);display:flex;align-items:center;gap:5px;font-family:inherit;transition:border-color .15s;flex-shrink:0}
+.refresh-btn.loading i{animation:spin .8s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.summary{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:1.25rem}
+@media(max-width:600px){.summary{grid-template-columns:repeat(2,1fr)}}
+.stat{background:var(--surface);border:.5px solid var(--border);border-radius:var(--rl);padding:12px 14px}
+.stat-label{font-size:11px;color:var(--text2);text-transform:uppercase;letter-spacing:.05em}
+.stat-val{font-size:17px;font-weight:600;color:var(--text);margin-top:3px}
+.stat-val.c-red{color:var(--red)}.stat-val.c-green{color:var(--green)}.stat-val.c-amber{color:var(--amber)}
+.progress-wrap{margin-bottom:1.25rem}
+.progress-header{display:flex;justify-content:space-between;font-size:12px;color:var(--text2);margin-bottom:5px}
+.progress-bar{height:6px;background:var(--surface2);border-radius:100px;overflow:hidden}
+.progress-fill{height:100%;background:var(--green);border-radius:100px;transition:width .4s ease}
+.day-group{margin-bottom:1.25rem}
+.day-label{font-size:11px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.07em;padding:0 2px 6px;display:flex;align-items:center;gap:6px;border-bottom:.5px solid var(--border);margin-bottom:6px}
+.day-label .dot{width:5px;height:5px;border-radius:50%;background:var(--border2);flex-shrink:0}
+.day-label.lbl-today{color:var(--blue)}.day-label.lbl-today .dot{background:var(--blue)}
+.day-label.lbl-overdue{color:var(--red)}.day-label.lbl-overdue .dot{background:var(--red)}
+.bill-card{background:var(--surface);border:.5px solid var(--border);border-radius:var(--rl);padding:10px 14px;margin-bottom:5px;display:flex;align-items:center;gap:10px;cursor:pointer;transition:border-color .15s,opacity .2s;user-select:none}
+.bill-card:hover{border-color:var(--border2)}
+.bill-card.paid{opacity:.5}
+.bill-card.overdue{border-left:3px solid var(--red)}
+.bill-card.due-today{border-left:3px solid var(--blue)}
+.bill-card.due-soon{border-left:3px solid var(--amber)}
+.check-btn{width:22px;height:22px;border-radius:50%;border:1.5px solid var(--border2);background:transparent;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:all .15s}
+.check-btn.checked{background:var(--green);border-color:var(--green)}
+.check-btn i{font-size:12px;color:white;opacity:0;transition:opacity .15s}
+.check-btn.checked i{opacity:1}
+.bill-info{flex:1;min-width:0}
+.bill-name{font-size:14px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.bill-card.paid .bill-name{text-decoration:line-through;color:var(--text2)}
+.bill-sub{font-size:12px;color:var(--text2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-top:1px}
+.bill-right{display:flex;flex-direction:column;align-items:flex-end;gap:4px;flex-shrink:0}
+.bill-value{font-size:14px;font-weight:600}
+.bill-value.var{font-size:12px;color:var(--text2);font-style:italic;font-weight:400}
+.pills{display:flex;gap:4px;flex-wrap:wrap;justify-content:flex-end}
+.pill{font-size:10px;padding:2px 7px;border-radius:100px;font-weight:500;white-space:nowrap}
+.pill-bank{background:var(--surface2);color:var(--text2);border:.5px solid var(--border)}
+.pill-paid{background:var(--green-bg);color:var(--green-text)}
+.pill-overdue{background:var(--red-bg);color:var(--red)}
+.pill-today{background:var(--blue-bg);color:var(--blue)}
+.pill-soon{background:var(--amber-bg);color:var(--amber)}
+.empty{text-align:center;padding:3rem 1rem;color:var(--text2);font-size:14px}
+.empty i{font-size:32px;display:block;margin:0 auto 8px;color:var(--text3)}
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.4);display:flex;align-items:center;justify-content:center;z-index:100;padding:1rem;opacity:0;pointer-events:none;transition:opacity .2s}
+.modal-overlay.open{opacity:1;pointer-events:all}
+.modal{background:var(--surface);border-radius:var(--rl);padding:1.5rem;max-width:440px;width:100%;border:.5px solid var(--border2)}
+.modal h2{font-size:16px;font-weight:600;margin-bottom:1rem}
+.modal-row{display:flex;justify-content:space-between;padding:7px 0;border-bottom:.5px solid var(--border);font-size:13px}
+.modal-row:last-of-type{border-bottom:none}
+.modal-label{color:var(--text2)}.modal-val{font-weight:500;max-width:220px;text-align:right}
+.modal-close{margin-top:1rem;width:100%;padding:8px;background:var(--surface2);border:.5px solid var(--border);border-radius:var(--r);cursor:pointer;font-size:13px;font-family:inherit;color:var(--text)}
+.toast{position:fixed;bottom:1.5rem;left:50%;transform:translateX(-50%) translateY(20px);background:var(--text);color:var(--bg);padding:8px 18px;border-radius:100px;font-size:13px;opacity:0;transition:all .25s;pointer-events:none;z-index:200;white-space:nowrap}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
 </style>
 </head>
 <body>
-
 <div class="app">
   <div class="header-row">
     <div class="app-header">
@@ -164,20 +93,19 @@
       <button class="refresh-btn" id="refreshBtn" onclick="syncSheet()">
         <i class="ti ti-refresh"></i> Sincronizar planilha
       </button>
-      <div class="sync-info"><i class="ti ti-clock" style="font-size:12px"></i> <span id="lastSync">—</span></div>
+      <div class="sync-info"><i class="ti ti-clock" style="font-size:12px"></i><span id="lastSync">aguardando...</span></div>
     </div>
   </div>
-
   <div class="toolbar">
     <div class="filter-group">
       <button class="filter-btn" onclick="setView('day')">Hoje</button>
-      <button class="filter-btn active" onclick="setView('month')">Mês</button>
+      <button class="filter-btn active" onclick="setView('month')">Mes</button>
       <button class="filter-btn" onclick="setView('week')">Semana</button>
       <button class="filter-btn" onclick="setView('all')">Todos</button>
     </div>
     <div class="search-wrap">
       <i class="ti ti-search"></i>
-      <input class="search-input" type="text" id="search" placeholder="Buscar fornecedor ou descrição..." oninput="render()">
+      <input class="search-input" type="text" id="search" placeholder="Buscar fornecedor ou descricao..." oninput="render()">
     </div>
     <div class="month-nav">
       <button class="nav-btn" onclick="prevMonth()"><i class="ti ti-chevron-left"></i></button>
@@ -185,96 +113,89 @@
       <button class="nav-btn" onclick="nextMonth()"><i class="ti ti-chevron-right"></i></button>
     </div>
   </div>
-
   <div class="summary">
-    <div class="stat"><div class="stat-label">Total fixo/mês</div><div class="stat-val" id="sTotal">—</div></div>
-    <div class="stat"><div class="stat-label">Pendente</div><div class="stat-val c-amber" id="sPending">—</div></div>
-    <div class="stat"><div class="stat-label">Pago este mês</div><div class="stat-val c-green" id="sPaid">—</div></div>
-    <div class="stat"><div class="stat-label">Vencido</div><div class="stat-val c-red" id="sOverdue">—</div></div>
+    <div class="stat"><div class="stat-label">Total fixo/mes</div><div class="stat-val" id="sTotal">-</div></div>
+    <div class="stat"><div class="stat-label">Pendente</div><div class="stat-val c-amber" id="sPending">-</div></div>
+    <div class="stat"><div class="stat-label">Pago este mes</div><div class="stat-val c-green" id="sPaid">-</div></div>
+    <div class="stat"><div class="stat-label">Vencido</div><div class="stat-val c-red" id="sOverdue">-</div></div>
   </div>
-
   <div class="progress-wrap">
     <div class="progress-header">
-      <span id="progressLabel">Progresso de pagamentos — mês atual</span>
+      <span>Progresso de pagamentos - mes atual</span>
       <span id="progressPct">0%</span>
     </div>
     <div class="progress-bar"><div class="progress-fill" id="progressFill" style="width:0%"></div></div>
   </div>
-
   <div id="list"></div>
 </div>
 
-<!-- Modal de detalhes -->
 <div class="modal-overlay" id="modalOverlay" onclick="closeModal(event)">
-  <div class="modal" id="modalBox">
+  <div class="modal">
     <h2 id="modalTitle"></h2>
     <div id="modalContent"></div>
     <button class="modal-close" onclick="closeModal()">Fechar</button>
   </div>
 </div>
-
 <div class="toast" id="toast"></div>
 
 <script>
-const SHEET_ID = '1BpwZTxr5aL52cF3orSdbCp-aXLRqeWBLt3fuDa0et_U';
-const CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vSGN-eSmm-uYACPrCZLP6dFM_qz3eWhI3n-R2riUgNpA6qM_c_e55gyL7B0vFBiHfaSRmRLhsC6_BSu/pub?output=csv';
-const MONTHS = ['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
-const WDAYS = ['Dom','Seg','Ter','Qua','Qui','Sex','Sáb'];
+var CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vSGN-eSmm-uYACPrCZLP6dFM_qz3eWhI3n-R2riUgNpA6qM_c_e55gyL7B0vFBiHfaSRmRLhsC6_BSu/pub?output=csv';
+var MONTHS = ['Janeiro','Fevereiro','Marco','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
+var WDAYS = ['Dom','Seg','Ter','Qua','Qui','Sex','Sab'];
 
-const BILLS = [
-  {id:1,  name:'OXIGAS RESIDUOS ESPECIAIS LTDA',         alias:'Oxigas',                  value:315,    variable:false, day:2,  bank:'SICOOB',   desc:'Coleta de residuos'},
-  {id:2,  name:'Sicoob',                                  alias:'Sicoob - Capital',        value:50,     variable:false, day:2,  bank:'SICOOB',   desc:'Integralizacao de Capital'},
-  {id:3,  name:'MONEST COBRANCAS S.A',                    alias:'Monest',                  value:199.90, variable:false, day:5,  bank:'SICOOB',   desc:'Licenca de uso'},
-  {id:4,  name:'EMPRESA BRASILEIRA DE CORREIOS',          alias:'Correios',                value:0,      variable:true,  day:5,  bank:'SICOOB',   desc:'Frete dos correios'},
-  {id:5,  name:'SALARIOS DE FUNCIONARIOS',                alias:'Salarios Funcionarios',   value:0,      variable:true,  day:5,  special:'5DU',   bank:'SICOOB', desc:'Salarios'},
-  {id:6,  name:'ANDRE LUIZ DUARTE FERREIRA',              alias:'Servicos - Andre',        value:650,    variable:false, day:5,  bank:'DINHEIRO', desc:'Prestacao de Servico'},
-  {id:7,  name:'P.B&E LABORATORIO OTICO LTDA',            alias:'P.B&E Lab Otico',         value:0,      variable:true,  day:0,  weekly:true,     bank:'SICOOB',   desc:'Tratamento Anti Risco (Semanal)'},
-  {id:8,  name:'Contabilidade Lima LTDA',                 alias:'Contabilidade',           value:810.50, variable:false, day:10, bank:'SICOOB',   desc:'Prestacao de Servico'},
-  {id:9,  name:'TRANSITANDO SERVICOS EXPRESSOS LTDA',     alias:'MotoFrete',               value:1450,   variable:false, day:10, bank:'SICOOB',   desc:'Servicos de MotoFrete'},
-  {id:10, name:'LWSA S/A',                                alias:'Bling',                   value:450,    variable:false, day:10, bank:'SICOOB',   desc:'Mensalidade Bling'},
-  {id:30, name:'LWSA S/A',                                alias:'Bling Rita',              value:120,    variable:false, day:10, bank:'DINHEIRO', desc:'Mensalidade Bling Rita'},
-  {id:11, name:'CAMARA DOS DIRIGENTES LOJISTAS BH',       alias:'CDL | Unimed',            value:0,      variable:true,  day:12, bank:'SICOOB',   desc:'Mensalidade CDL'},
-  {id:12, name:'MAGNO ALBERTO MORAIS CARRARO',            alias:'Servicos - Magno',        value:800,    variable:false, day:12, bank:'SICOOB',   desc:'Servicos Prestados'},
-  {id:13, name:'CONSORCIO VALE TRANSPORTE',               alias:'Vale Transporte 1a',      value:0,      variable:true,  day:12, bank:'SICOOB',   desc:'Vale Transporte'},
-  {id:14, name:'Caixa Economica Federal',                 alias:'Emprestimo CEF',          value:0,      variable:true,  day:14, bank:'CAIXA',    desc:'Prestacao do emprestimo'},
-  {id:15, name:'Conta Vivo Internet/Telefone',            alias:'Telefone/Internet',       value:0,      variable:true,  day:17, bank:'DINHEIRO', desc:'Internet e Telefone'},
-  {id:16, name:'DIXI VEXT SISTEMAS LTDA',                 alias:'Ponto Eletronico',        value:70,     variable:false, day:20, bank:'SICOOB',   desc:'Sistema de Ponto'},
-  {id:17, name:'Caixa Economica Federal',                 alias:'FGTS',                    value:0,      variable:true,  day:20, bank:'SICOOB',   desc:'FGTS'},
-  {id:18, name:'Documento de Arrecadacao Simples',        alias:'DAS - Simples Nacional',  value:0,      variable:true,  day:20, bank:'SICOOB',   desc:'DAS mensal'},
-  {id:19, name:'Documentos de Arrecadacao Federal',       alias:'DCTF',                    value:0,      variable:true,  day:20, bank:'SICOOB',   desc:'Arrecadacao Federal'},
-  {id:20, name:'Documento de Arrecadacao Estadual',       alias:'ICMS',                    value:0,      variable:true,  day:20, bank:'SICOOB',   desc:'Arrecadacao Estadual'},
-  {id:21, name:'PERCILIA VELOSO NETO',                    alias:'Adiantamento - Percilia', value:0,      variable:true,  day:20, bank:'SICOOB',   desc:'Adiantamento de Salario'},
-  {id:22, name:'Andorinha Energia Solar',                 alias:'Energia Solar',           value:0,      variable:true,  day:22, bank:'SICOOB',   desc:'Energia Solar'},
-  {id:23, name:'CEMIG',                                   alias:'CEMIG',                   value:0,      variable:true,  day:22, bank:'SICOOB',   desc:'Conta de energia'},
-  {id:24, name:'EMPRESA BRASILEIRA DE BENEFICIOS',        alias:'Premiacao Funcionarios',  value:0,      variable:true,  day:25, bank:'SICOOB',   desc:'Premiacao'},
-  {id:25, name:'CAROLINE INACIA PINTO',                   alias:'Servicos - Carol',        value:1000,   variable:false, day:25, bank:'SICOOB',   desc:'Capacitacao em sistemas'},
-  {id:26, name:'Caixa Economica Federal',                 alias:'Cesta de Servicos CEF',   value:0,      variable:true,  day:25, bank:'CAIXA',    desc:'Cesta de Servicos'},
-  {id:27, name:'CONSORCIO VALE TRANSPORTE',               alias:'Vale Transporte 2a',      value:0,      variable:true,  day:27, bank:'SICOOB',   desc:'Vale Transporte'},
-  {id:28, name:'DAS - Parcelamento',                      alias:'DAS - Parcelamento',      value:0,      variable:true,  day:30, bank:'SICOOB',   desc:'Simples Parcelado'},
-  {id:29, name:'ESTRELA - DISTRIBUIDORA (Aluguel)',       alias:'Aluguel',                 value:3850,   variable:false, day:30, bank:'SICOOB',   desc:'Pagamento de Aluguel'},
+var BILLS = [
+  {id:1,  name:'OXIGAS RESIDUOS ESPECIAIS LTDA',        alias:'Oxigas',               value:315,    variable:false, day:2,  bank:'SICOOB',   desc:'Coleta de residuos'},
+  {id:2,  name:'SICOOB',                                 alias:'Sicoob - Capital',     value:50,     variable:false, day:2,  bank:'SICOOB',   desc:'Integralizacao de Capital'},
+  {id:3,  name:'MONEST COBRANCAS SA',                    alias:'Monest',               value:199.90, variable:false, day:5,  bank:'SICOOB',   desc:'Licenca de uso'},
+  {id:4,  name:'EMPRESA BRASILEIRA DE CORREIOS',         alias:'Correios',             value:0,      variable:true,  day:5,  bank:'SICOOB',   desc:'Frete dos correios'},
+  {id:5,  name:'SALARIOS DE FUNCIONARIOS',               alias:'Salarios',             value:0,      variable:true,  day:5,  special:true,    bank:'SICOOB',   desc:'Salarios'},
+  {id:6,  name:'ANDRE LUIZ DUARTE FERREIRA',             alias:'Servicos - Andre',     value:650,    variable:false, day:5,  bank:'DINHEIRO', desc:'Prestacao de Servico'},
+  {id:7,  name:'PBELABORATORIO OTICO LTDA',              alias:'PBE Lab Otico',        value:0,      variable:true,  day:0,  weekly:true,     bank:'SICOOB',   desc:'Tratamento Anti Risco (Semanal)'},
+  {id:8,  name:'CONTABILIDADE LIMA LTDA',                alias:'Contabilidade',        value:810.50, variable:false, day:10, bank:'SICOOB',   desc:'Prestacao de Servico'},
+  {id:9,  name:'TRANSITANDO SERVICOS EXPRESSOS LTDA',    alias:'MotoFrete',            value:1450,   variable:false, day:10, bank:'SICOOB',   desc:'Servicos de MotoFrete'},
+  {id:10, name:'LWSA SA',                                alias:'Bling',                value:450,    variable:false, day:10, bank:'SICOOB',   desc:'Mensalidade Bling'},
+  {id:30, name:'LWSA SA RITA',                           alias:'Bling Rita',           value:120,    variable:false, day:10, bank:'DINHEIRO', desc:'Mensalidade Bling Rita'},
+  {id:11, name:'CAMARA DOS DIRIGENTES LOJISTAS BH',      alias:'CDL Unimed',           value:0,      variable:true,  day:12, bank:'SICOOB',   desc:'Mensalidade CDL'},
+  {id:12, name:'MAGNO ALBERTO MORAIS CARRARO',           alias:'Servicos - Magno',     value:800,    variable:false, day:12, bank:'SICOOB',   desc:'Servicos Prestados'},
+  {id:13, name:'CONSORCIO VALE TRANSPORTE',              alias:'Vale Transporte 1a',   value:0,      variable:true,  day:12, bank:'SICOOB',   desc:'Vale Transporte'},
+  {id:14, name:'CAIXA ECONOMICA FEDERAL EMPRESTIMO',     alias:'Emprestimo CEF',       value:0,      variable:true,  day:14, bank:'CAIXA',    desc:'Prestacao do emprestimo'},
+  {id:15, name:'CONTA VIVO INTERNET TELEFONE',           alias:'Telefone Internet',    value:0,      variable:true,  day:17, bank:'DINHEIRO', desc:'Internet e Telefone'},
+  {id:16, name:'DIXI VEXT SISTEMAS LTDA',                alias:'Ponto Eletronico',     value:70,     variable:false, day:20, bank:'SICOOB',   desc:'Sistema de Ponto'},
+  {id:17, name:'CAIXA ECONOMICA FEDERAL FGTS',           alias:'FGTS',                 value:0,      variable:true,  day:20, bank:'SICOOB',   desc:'FGTS'},
+  {id:18, name:'DOCUMENTO DE ARRECADACAO SIMPLES',       alias:'DAS - Simples',        value:0,      variable:true,  day:20, bank:'SICOOB',   desc:'DAS mensal'},
+  {id:19, name:'DOCUMENTOS DE ARRECADACAO FEDERAL',      alias:'DCTF',                 value:0,      variable:true,  day:20, bank:'SICOOB',   desc:'Arrecadacao Federal'},
+  {id:20, name:'DOCUMENTO DE ARRECADACAO ESTADUAL',      alias:'ICMS',                 value:0,      variable:true,  day:20, bank:'SICOOB',   desc:'Arrecadacao Estadual'},
+  {id:21, name:'PERCILIA VELOSO NETO',                   alias:'Adiantamento Percilia',value:0,      variable:true,  day:20, bank:'SICOOB',   desc:'Adiantamento de Salario'},
+  {id:22, name:'ANDORINHA ENERGIA SOLAR',                alias:'Energia Solar',        value:0,      variable:true,  day:22, bank:'SICOOB',   desc:'Energia Solar'},
+  {id:23, name:'CEMIG',                                  alias:'CEMIG',                value:0,      variable:true,  day:22, bank:'SICOOB',   desc:'Conta de energia'},
+  {id:24, name:'EMPRESA BRASILEIRA DE BENEFICIOS',       alias:'Premiacao Funcionarios',value:0,     variable:true,  day:25, bank:'SICOOB',   desc:'Premiacao'},
+  {id:25, name:'CAROLINE INACIA PINTO',                  alias:'Servicos - Carol',     value:1000,   variable:false, day:25, bank:'SICOOB',   desc:'Capacitacao em sistemas'},
+  {id:26, name:'CAIXA ECONOMICA FEDERAL CESTA',          alias:'Cesta de Servicos CEF',value:0,      variable:true,  day:25, bank:'CAIXA',    desc:'Cesta de Servicos'},
+  {id:27, name:'CONSORCIO VALE TRANSPORTE 2',            alias:'Vale Transporte 2a',   value:0,      variable:true,  day:27, bank:'SICOOB',   desc:'Vale Transporte'},
+  {id:28, name:'DAS PARCELAMENTO',                       alias:'DAS - Parcelamento',   value:0,      variable:true,  day:30, bank:'SICOOB',   desc:'Simples Parcelado'},
+  {id:29, name:'ESTRELA DISTRIBUIDORA',                  alias:'Aluguel',              value:3850,   variable:false, day:30, bank:'SICOOB',   desc:'Pagamento de Aluguel'}
 ];
 
-let viewMode = 'month';
-let curMonth = new Date().getMonth();
-let curYear  = new Date().getFullYear();
-let paid = new Set(JSON.parse(localStorage.getItem('paid_v2') || '[]'));
-let sheetData = null;
+var viewMode = 'month';
+var curMonth = new Date().getMonth();
+var curYear  = new Date().getFullYear();
+var paid = new Set(JSON.parse(localStorage.getItem('paid_v2') || '[]'));
 
 function savePaid() { localStorage.setItem('paid_v2', JSON.stringify([...paid])); }
-function pkey(id, d, m, y) { return `${id}_${d}_${m}_${y}`; }
-
+function pkey(id, d, m, y) { return id + '_' + d + '_' + m + '_' + y; }
 function brl(v) { return v.toLocaleString('pt-BR', {style:'currency', currency:'BRL'}); }
+
 function toast(msg) {
-  const t = document.getElementById('toast');
+  var t = document.getElementById('toast');
   t.textContent = msg;
   t.classList.add('show');
-  setTimeout(() => t.classList.remove('show'), 2200);
+  setTimeout(function(){ t.classList.remove('show'); }, 2500);
 }
 
 function workingDay(n, m, y) {
-  let count = 0, d = 1;
+  var count = 0, d = 1;
   while (count < n) {
-    const dow = new Date(y, m, d).getDay();
+    var dow = new Date(y, m, d).getDay();
     if (dow !== 0 && dow !== 6) count++;
     if (count < n) d++;
   }
@@ -284,19 +205,18 @@ function workingDay(n, m, y) {
 function billDays(bill, m, y) {
   if (bill.special) return [workingDay(5, m, y)];
   if (bill.weekly) {
-    const days = [];
-    const total = new Date(y, m+1, 0).getDate();
-    for (let d = 1; d <= total; d += 7) days.push(d);
+    var days = [], total = new Date(y, m+1, 0).getDate();
+    for (var d = 1; d <= total; d += 7) days.push(d);
     return days;
   }
-  const max = new Date(y, m+1, 0).getDate();
+  var max = new Date(y, m+1, 0).getDate();
   return [Math.min(bill.day, max)];
 }
 
 function getStatus(billDay, m, y, isPaid) {
   if (isPaid) return 'paid';
-  const today = new Date(); today.setHours(0,0,0,0);
-  const bd = new Date(y, m, billDay);
+  var today = new Date(); today.setHours(0,0,0,0);
+  var bd = new Date(y, m, billDay);
   if (bd < today) return 'overdue';
   if (bd.getTime() === today.getTime()) return 'today';
   if ((bd - today) / 86400000 <= 3) return 'soon';
@@ -304,120 +224,107 @@ function getStatus(billDay, m, y, isPaid) {
 }
 
 function allEntries(m, y) {
-  return BILLS.flatMap(b => billDays(b, m, y).map(d => {
-    const k = pkey(b.id, d, m, y);
-    return { ...b, billDay: d, key: k, isPaid: paid.has(k) };
-  }));
+  var result = [];
+  BILLS.forEach(function(b) {
+    billDays(b, m, y).forEach(function(d) {
+      var k = pkey(b.id, d, m, y);
+      result.push(Object.assign({}, b, {billDay: d, key: k, isPaid: paid.has(k)}));
+    });
+  });
+  return result;
 }
 
 function filteredEntries() {
-  const today = new Date();
-  const q = document.getElementById('search').value.toLowerCase();
-  let entries = allEntries(curMonth, curYear);
+  var today = new Date();
+  var q = document.getElementById('search').value.toLowerCase();
+  var entries = allEntries(curMonth, curYear);
 
   if (viewMode === 'day') {
-    entries = entries.filter(e =>
-      e.billDay === today.getDate() && curMonth === today.getMonth() && curYear === today.getFullYear());
+    entries = entries.filter(function(e) {
+      return e.billDay === today.getDate() && curMonth === today.getMonth() && curYear === today.getFullYear();
+    });
   } else if (viewMode === 'week') {
-    const ws = new Date(today); ws.setHours(0,0,0,0);
-    const we = new Date(today); we.setDate(we.getDate()+6); we.setHours(23,59,59);
-    entries = entries.filter(e => { const bd = new Date(curYear, curMonth, e.billDay); return bd >= ws && bd <= we; });
-  } else if (viewMode === 'month') {
-    // all in curMonth
+    var ws = new Date(today); ws.setHours(0,0,0,0);
+    var we = new Date(today); we.setDate(we.getDate()+6); we.setHours(23,59,59);
+    entries = entries.filter(function(e) {
+      var bd = new Date(curYear, curMonth, e.billDay);
+      return bd >= ws && bd <= we;
+    });
   }
-  if (q) entries = entries.filter(e =>
-    e.name.toLowerCase().includes(q) || e.alias.toLowerCase().includes(q) || e.desc.toLowerCase().includes(q));
 
-  return entries.sort((a,b) => a.billDay - b.billDay);
+  if (q) entries = entries.filter(function(e) {
+    return e.name.toLowerCase().includes(q) || e.alias.toLowerCase().includes(q) || e.desc.toLowerCase().includes(q);
+  });
+
+  return entries.sort(function(a,b){ return a.billDay - b.billDay; });
 }
 
 function render() {
-  document.getElementById('monthLabel').textContent = `${MONTHS[curMonth]} ${curYear}`;
+  document.getElementById('monthLabel').textContent = MONTHS[curMonth] + ' ' + curYear;
+  var all = allEntries(curMonth, curYear);
+  var fixedTotal  = all.filter(function(e){ return !e.variable; }).reduce(function(s,e){ return s+e.value; }, 0);
+  var paidTotal   = all.filter(function(e){ return e.isPaid && !e.variable; }).reduce(function(s,e){ return s+e.value; }, 0);
+  var pendTotal   = all.filter(function(e){ return !e.isPaid && !e.variable; }).reduce(function(s,e){ return s+e.value; }, 0);
+  var today = new Date(); today.setHours(0,0,0,0);
+  var overdueTotal = all.filter(function(e){
+    return !e.isPaid && !e.variable && new Date(curYear, curMonth, e.billDay) < today;
+  }).reduce(function(s,e){ return s+e.value; }, 0);
 
-  const all = allEntries(curMonth, curYear);
-  const fixedTotal = all.filter(e=>!e.variable).reduce((s,e)=>s+e.value, 0);
-  const paidTotal  = all.filter(e=>e.isPaid && !e.variable).reduce((s,e)=>s+e.value, 0);
-  const pendTotal  = all.filter(e=>!e.isPaid && !e.variable).reduce((s,e)=>s+e.value, 0);
-  const today = new Date(); today.setHours(0,0,0,0);
-  const overdueTotal = all.filter(e=>{
-    const bd = new Date(curYear, curMonth, e.billDay);
-    return !e.isPaid && !e.variable && bd < today;
-  }).reduce((s,e)=>s+e.value, 0);
-
-  document.getElementById('sTotal').textContent = brl(fixedTotal) + (all.some(e=>e.variable) ? ' +var.' : '');
+  document.getElementById('sTotal').textContent = brl(fixedTotal) + (all.some(function(e){ return e.variable; }) ? ' +var.' : '');
   document.getElementById('sPending').textContent = brl(pendTotal);
   document.getElementById('sPaid').textContent = brl(paidTotal);
-  document.getElementById('sOverdue').textContent = overdueTotal > 0 ? brl(overdueTotal) : '—';
+  document.getElementById('sOverdue').textContent = overdueTotal > 0 ? brl(overdueTotal) : '-';
 
-  const pct = fixedTotal > 0 ? Math.round((paidTotal / fixedTotal) * 100) : 0;
+  var pct = fixedTotal > 0 ? Math.round((paidTotal / fixedTotal) * 100) : 0;
   document.getElementById('progressFill').style.width = pct + '%';
   document.getElementById('progressPct').textContent = pct + '%';
+  document.getElementById('subtitle').textContent = BILLS.length + ' contas cadastradas . ' + all.filter(function(e){ return e.isPaid; }).length + ' pagas este mes';
 
-  const count = all.length;
-  const paidCount = all.filter(e=>e.isPaid).length;
-  document.getElementById('subtitle').textContent =
-    `${count} contas cadastradas • ${paidCount} pagas este mês`;
-
-  const entries = filteredEntries();
-  const list = document.getElementById('list');
-
+  var entries = filteredEntries();
+  var list = document.getElementById('list');
   if (!entries.length) {
-    list.innerHTML = '<div class="empty"><i class="ti ti-check"></i>Nenhuma conta neste período</div>';
+    list.innerHTML = '<div class="empty"><i class="ti ti-check"></i>Nenhuma conta neste periodo</div>';
     return;
   }
 
-  const groups = {};
-  for (const e of entries) {
+  var groups = {};
+  entries.forEach(function(e) {
     if (!groups[e.billDay]) groups[e.billDay] = [];
     groups[e.billDay].push(e);
-  }
+  });
 
-  const todayD = today.getDate(), todayM = today.getMonth(), todayY = today.getFullYear();
-  let html = '';
+  var todayD = today.getDate(), todayM = today.getMonth(), todayY = today.getFullYear();
+  var html = '';
 
-  for (const day of Object.keys(groups).map(Number).sort((a,b)=>a-b)) {
-    const bd = new Date(curYear, curMonth, day);
-    const isToday   = day === todayD && curMonth === todayM && curYear === todayY;
-    const isOverdue = bd < today && !isToday;
-    const lblCls = isToday ? 'lbl-today' : isOverdue ? 'lbl-overdue' : '';
-    const wday = WDAYS[bd.getDay()];
-    const suffix = isToday ? ' — hoje' : isOverdue ? ' — vencido' : '';
+  Object.keys(groups).map(Number).sort(function(a,b){ return a-b; }).forEach(function(day) {
+    var bd = new Date(curYear, curMonth, day);
+    var isToday   = day === todayD && curMonth === todayM && curYear === todayY;
+    var isOverdue = bd < today && !isToday;
+    var lblCls = isToday ? 'lbl-today' : isOverdue ? 'lbl-overdue' : '';
+    var wday = WDAYS[bd.getDay()];
+    var suffix = isToday ? ' - hoje' : isOverdue ? ' - vencido' : '';
 
-    html += `<div class="day-group">
-      <div class="day-label ${lblCls}">
-        <span class="dot"></span>
-        Dia ${day} &nbsp;·&nbsp; ${wday}${suffix}
-      </div>`;
+    html += '<div class="day-group"><div class="day-label ' + lblCls + '"><span class="dot"></span>Dia ' + day + ' . ' + wday + suffix + '</div>';
 
-    for (const e of groups[day]) {
-      const st = getStatus(e.billDay, curMonth, curYear, e.isPaid);
-      const cardCls = e.isPaid ? 'paid' : st === 'overdue' ? 'overdue' : st === 'today' ? 'due-today' : st === 'soon' ? 'due-soon' : '';
-      const pill = e.isPaid
-        ? `<span class="pill pill-paid">Pago</span>`
-        : st === 'overdue' ? `<span class="pill pill-overdue">Vencido</span>`
-        : st === 'today'   ? `<span class="pill pill-today">Hoje</span>`
-        : st === 'soon'    ? `<span class="pill pill-soon">Em breve</span>` : '';
-      const valHtml = e.variable
-        ? `<span class="bill-value var">Valor variável</span>`
-        : `<span class="bill-value">${brl(e.value)}</span>`;
+    groups[day].forEach(function(e) {
+      var st = getStatus(e.billDay, curMonth, curYear, e.isPaid);
+      var cardCls = e.isPaid ? 'paid' : st === 'overdue' ? 'overdue' : st === 'today' ? 'due-today' : st === 'soon' ? 'due-soon' : '';
+      var pill = e.isPaid ? '<span class="pill pill-paid">Pago</span>'
+        : st === 'overdue' ? '<span class="pill pill-overdue">Vencido</span>'
+        : st === 'today'   ? '<span class="pill pill-today">Hoje</span>'
+        : st === 'soon'    ? '<span class="pill pill-soon">Em breve</span>' : '';
+      var valHtml = e.variable ? '<span class="bill-value var">Valor variavel</span>' : '<span class="bill-value">' + brl(e.value) + '</span>';
 
-      html += `<div class="bill-card ${cardCls}" onclick="showDetail('${e.key}')">
-        <button class="check-btn ${e.isPaid?'checked':''}" aria-label="Marcar pago"
-          onclick="event.stopPropagation();togglePaid('${e.key}')">
-          <i class="ti ti-check" aria-hidden="true"></i>
-        </button>
-        <div class="bill-info">
-          <div class="bill-name">${e.alias}</div>
-          <div class="bill-sub">${e.desc} &nbsp;·&nbsp; Dia ${e.billDay}</div>
-        </div>
-        <div class="bill-right">
-          ${valHtml}
-          <div class="pills">${pill}<span class="pill pill-bank">${e.bank}</span></div>
-        </div>
-      </div>`;
-    }
+      html += '<div class="bill-card ' + cardCls + '" onclick="showDetail(\'' + e.key + '\')">'
+        + '<button class="check-btn ' + (e.isPaid ? 'checked' : '') + '" onclick="event.stopPropagation();togglePaid(\'' + e.key + '\')">'
+        + '<i class="ti ti-check"></i></button>'
+        + '<div class="bill-info"><div class="bill-name">' + e.alias + '</div>'
+        + '<div class="bill-sub">' + e.desc + ' . Dia ' + e.billDay + '</div></div>'
+        + '<div class="bill-right">' + valHtml
+        + '<div class="pills">' + pill + '<span class="pill pill-bank">' + e.bank + '</span></div></div></div>';
+    });
     html += '</div>';
-  }
+  });
   list.innerHTML = html;
 }
 
@@ -425,32 +332,25 @@ function togglePaid(key) {
   paid.has(key) ? paid.delete(key) : paid.add(key);
   savePaid();
   render();
-  toast(paid.has(key) ? '✓ Marcado como pago' : 'Desmarcado');
+  toast(paid.has(key) ? 'Marcado como pago' : 'Desmarcado');
 }
 
-// Detalhe modal
-const ENTRY_MAP = {};
 function showDetail(key) {
-  const all = allEntries(curMonth, curYear);
-  const e = all.find(x => x.key === key);
+  var all = allEntries(curMonth, curYear);
+  var e = all.find(function(x){ return x.key === key; });
   if (!e) return;
   document.getElementById('modalTitle').textContent = e.alias;
-  document.getElementById('modalContent').innerHTML = `
-    <div class="modal-row"><span class="modal-label">Fornecedor</span><span class="modal-val">${e.name}</span></div>
-    <div class="modal-row"><span class="modal-label">Descrição</span><span class="modal-val">${e.desc}</span></div>
-    <div class="modal-row"><span class="modal-label">Vencimento</span><span class="modal-val">Dia ${e.billDay}${e.special?' ('+e.special+')':''}</span></div>
-    <div class="modal-row"><span class="modal-label">Valor</span><span class="modal-val">${e.variable ? 'Variável' : brl(e.value)}</span></div>
-    <div class="modal-row"><span class="modal-label">Pagamento via</span><span class="modal-val">${e.bank}</span></div>
-    <div class="modal-row"><span class="modal-label">Status</span><span class="modal-val">${e.isPaid ? '✓ Pago' : 'Pendente'}</span></div>
-    <div style="margin-top:1rem">
-      <button class="modal-close" style="background:${e.isPaid?'var(--red-bg)':'var(--green-bg)'};color:${e.isPaid?'var(--red)':'var(--green-text)'};"
-        onclick="togglePaid('${e.key}');closeModal()">
-        ${e.isPaid ? 'Desmarcar pagamento' : '✓ Marcar como pago'}
-      </button>
-    </div>
-  `;
+  document.getElementById('modalContent').innerHTML =
+    '<div class="modal-row"><span class="modal-label">Fornecedor</span><span class="modal-val">' + e.name + '</span></div>'
+    + '<div class="modal-row"><span class="modal-label">Descricao</span><span class="modal-val">' + e.desc + '</span></div>'
+    + '<div class="modal-row"><span class="modal-label">Vencimento</span><span class="modal-val">Dia ' + e.billDay + (e.special ? ' (5 dia util)' : '') + '</span></div>'
+    + '<div class="modal-row"><span class="modal-label">Valor</span><span class="modal-val">' + (e.variable ? 'Variavel' : brl(e.value)) + '</span></div>'
+    + '<div class="modal-row"><span class="modal-label">Pagamento via</span><span class="modal-val">' + e.bank + '</span></div>'
+    + '<div class="modal-row"><span class="modal-label">Status</span><span class="modal-val">' + (e.isPaid ? 'Pago' : 'Pendente') + '</span></div>'
+    + '<div style="margin-top:1rem"><button class="modal-close" style="background:' + (e.isPaid ? 'var(--red-bg);color:var(--red)' : 'var(--green-bg);color:var(--green-text)') + '" onclick="togglePaid(\'' + e.key + '\');closeModal()">' + (e.isPaid ? 'Desmarcar pagamento' : 'Marcar como pago') + '</button></div>';
   document.getElementById('modalOverlay').classList.add('open');
 }
+
 function closeModal(ev) {
   if (!ev || ev.target === document.getElementById('modalOverlay'))
     document.getElementById('modalOverlay').classList.remove('open');
@@ -458,7 +358,7 @@ function closeModal(ev) {
 
 function setView(v) {
   viewMode = v;
-  document.querySelectorAll('.filter-btn').forEach((b,i) => {
+  document.querySelectorAll('.filter-btn').forEach(function(b, i) {
     b.classList.toggle('active', ['day','month','week','all'][i] === v);
   });
   render();
@@ -466,91 +366,48 @@ function setView(v) {
 function prevMonth() { if(curMonth===0){curMonth=11;curYear--;}else curMonth--; render(); }
 function nextMonth() { if(curMonth===11){curMonth=0;curYear++;}else curMonth++; render(); }
 
-async function fetchCSV() {
-  // Tenta direto primeiro (funciona quando CORS esta liberado)
-  const direct = CSV_URL + '&cachebust=' + Date.now();
-  try {
-    const r = await fetch(direct, { cache: 'no-store' });
-    if (r.ok) { const t = await r.text(); if (t.includes(',')) return t; }
-  } catch(e) {}
-
-  // Fallback 1: allorigins proxy
-  try {
-    const proxy1 = 'https://api.allorigins.win/raw?url=' + encodeURIComponent(CSV_URL);
-    const r = await fetch(proxy1, { cache: 'no-store' });
-    if (r.ok) { const t = await r.text(); if (t.includes(',')) return t; }
-  } catch(e) {}
-
-  // Fallback 2: corsproxy.io
-  try {
-    const proxy2 = 'https://corsproxy.io/?' + encodeURIComponent(CSV_URL);
-    const r = await fetch(proxy2, { cache: 'no-store' });
-    if (r.ok) { const t = await r.text(); if (t.includes(',')) return t; }
-  } catch(e) {}
-
-  throw new Error('Todos os proxies falharam');
-}
-
-async function syncSheet() {
-  const btn = document.getElementById('refreshBtn');
-  btn.classList.add('loading');
-  btn.disabled = true;
-  try {
-    const csv = await fetchCSV();
-    const updated = parseSheet(csv);
-    const now = new Date().toLocaleTimeString('pt-BR');
-    document.getElementById('lastSync').textContent = 'Sincronizado: ' + now;
-    toast(updated > 0 ? (updated + ' item(ns) atualizado(s)!') : 'Planilha sincronizada!');
-  } catch(e) {
-    console.warn('Sync error:', e);
-    document.getElementById('lastSync').textContent = 'Sync falhou — verifique a publicacao';
+function parseCSVLine(line) {
+  var result = [], cur = '', inQ = false;
+  for (var i = 0; i < line.length; i++) {
+    var c = line[i];
+    if (c === '"') { inQ = !inQ; }
+    else if (c === ',' && !inQ) { result.push(cur.trim()); cur = ''; }
+    else { cur += c; }
   }
-  btn.classList.remove('loading');
-  btn.disabled = false;
-  render();
+  result.push(cur.trim());
+  return result;
 }
 
 function parseSheet(csv) {
-  function parseCSVLine(line) {
-    const result = [];
-    let cur = '', inQ = false;
-    for (let i = 0; i < line.length; i++) {
-      const c = line[i];
-      if (c === '"') { inQ = !inQ; }
-      else if (c === ',' && !inQ) { result.push(cur.trim()); cur = ''; }
-      else { cur += c; }
-    }
-    result.push(cur.trim());
-    return result;
+  var lines = csv.split('\n');
+  var headerIdx = -1;
+  for (var i = 0; i < lines.length; i++) {
+    if (lines[i].toLowerCase().indexOf('fornecedor') >= 0) { headerIdx = i; break; }
   }
+  var dataLines = lines.slice(headerIdx >= 0 ? headerIdx + 1 : 1);
+  var updated = 0;
 
-  const lines = csv.split('
-');
-  // Find header row
-  const headerIdx = lines.findIndex(l => l.toLowerCase().includes('fornecedor'));
-  const dataLines = headerIdx >= 0 ? lines.slice(headerIdx + 1) : lines.slice(1);
-  let updated = 0;
-
-  // Build lookup by normalized name
-  const byName = {};
-  BILLS.forEach(b => {
-    const k = b.name.toUpperCase().replace(/[^A-Z0-9]/g, '');
+  var byName = {};
+  BILLS.forEach(function(b) {
+    var k = b.name.toUpperCase().replace(/[^A-Z0-9]/g, '');
     byName[k] = b;
   });
 
-  dataLines.forEach(line => {
+  dataLines.forEach(function(line) {
     if (!line.trim()) return;
-    const cols = parseCSVLine(line);
-    const supplier = (cols[0] || '').replace(/^"|"$/g, '').trim();
-    const valueRaw = (cols[1] || '').replace(/^"|"$/g, '').trim();
-    const dayRaw   = (cols[2] || '').replace(/^"|"$/g, '').trim();
+    var cols = parseCSVLine(line);
+    var supplier = (cols[0] || '').replace(/^"|"$/g, '').trim();
+    var valueRaw = (cols[1] || '').replace(/^"|"$/g, '').trim();
+    var dayRaw   = (cols[2] || '').replace(/^"|"$/g, '').trim();
+    var bankRaw  = (cols[6] || '').replace(/^"|"$/g, '').trim();
+    var descRaw  = (cols[4] || '').replace(/^"|"$/g, '').trim();
     if (!supplier) return;
 
-    const key = supplier.toUpperCase().replace(/[^A-Z0-9]/g, '');
-    const bill = byName[key];
-
-    const cleanVal = valueRaw.replace(/[^0-9,.]/g, '').replace(',', '.');
-    const val = parseFloat(cleanVal);
+    var key = supplier.toUpperCase().replace(/[^A-Z0-9]/g, '');
+    var bill = byName[key];
+    var cleanVal = valueRaw.replace(/[^0-9,.]/g, '').replace(',', '.');
+    var val = parseFloat(cleanVal);
+    var dayNum = parseInt(dayRaw);
 
     if (bill) {
       if (!isNaN(val) && val > 0) {
@@ -558,45 +415,67 @@ function parseSheet(csv) {
         bill.variable = false;
       } else {
         if (!bill.variable) updated++;
-        bill.variable = true;
-        bill.value = 0;
+        bill.variable = true; bill.value = 0;
       }
-      const dayNum = parseInt(dayRaw);
       if (!isNaN(dayNum) && !bill.weekly && !bill.special && bill.day !== dayNum) {
-        bill.day = dayNum;
-        updated++;
+        bill.day = dayNum; updated++;
       }
     } else if (supplier.length > 2) {
-      // Nova linha na planilha que nao existe no sistema — adiciona dinamicamente
-      const dayNum = parseInt(dayRaw);
-      const newId = 1000 + BILLS.length;
-      const newBill = {
-        id: newId,
-        name: supplier,
-        alias: supplier.length > 30 ? supplier.substring(0, 30) + '...' : supplier,
+      var newId = 1000 + BILLS.length;
+      var newBill = {
+        id: newId, name: supplier,
+        alias: supplier.length > 30 ? supplier.substring(0, 28) + '...' : supplier,
         value: (!isNaN(val) && val > 0) ? val : 0,
         variable: isNaN(val) || val <= 0,
         day: !isNaN(dayNum) ? dayNum : 1,
-        bank: (cols[6] || '').replace(/^"|"$/g,'').trim() || 'SICOOB',
-        desc: (cols[4] || '').replace(/^"|"$/g,'').trim() || supplier
+        bank: bankRaw || 'SICOOB',
+        desc: descRaw || supplier
       };
       BILLS.push(newBill);
       byName[key] = newBill;
       updated++;
     }
   });
-
   return updated;
 }
 
-// Auto-sync a cada 5 minutos
-setInterval(syncSheet, 5 * 60 * 1000);
+async function fetchCSV() {
+  var url = CSV_URL + '&t=' + Date.now();
+  try {
+    var r = await fetch(url, {cache: 'no-store'});
+    if (r.ok) { var t = await r.text(); if (t.indexOf(',') >= 0) return t; }
+  } catch(e) {}
+  try {
+    var r2 = await fetch('https://api.allorigins.win/raw?url=' + encodeURIComponent(CSV_URL) + '&t=' + Date.now(), {cache:'no-store'});
+    if (r2.ok) { var t2 = await r2.text(); if (t2.indexOf(',') >= 0) return t2; }
+  } catch(e) {}
+  try {
+    var r3 = await fetch('https://corsproxy.io/?' + encodeURIComponent(CSV_URL), {cache:'no-store'});
+    if (r3.ok) { var t3 = await r3.text(); if (t3.indexOf(',') >= 0) return t3; }
+  } catch(e) {}
+  throw new Error('Sync falhou');
+}
 
-// Init
-(async () => {
+async function syncSheet() {
+  var btn = document.getElementById('refreshBtn');
+  btn.classList.add('loading'); btn.disabled = true;
+  try {
+    var csv = await fetchCSV();
+    var updated = parseSheet(csv);
+    var now = new Date().toLocaleTimeString('pt-BR');
+    document.getElementById('lastSync').textContent = 'Sincronizado: ' + now;
+    toast(updated > 0 ? (updated + ' item(ns) atualizado(s)!') : 'Planilha sincronizada!');
+  } catch(e) {
+    document.getElementById('lastSync').textContent = 'Sync falhou';
+    console.warn(e);
+  }
+  btn.classList.remove('loading'); btn.disabled = false;
   render();
-  await syncSheet();
-})();
+}
+
+setInterval(syncSheet, 5 * 60 * 1000);
+render();
+syncSheet();
 </script>
 </body>
 </html>
