@@ -217,39 +217,41 @@
 
 <script>
 const SHEET_ID = '1BpwZTxr5aL52cF3orSdbCp-aXLRqeWBLt3fuDa0et_U';
+const CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vSGN-eSmm-uYACPrCZLP6dFM_qz3eWhI3n-R2riUgNpA6qM_c_e55gyL7B0vFBiHfaSRmRLhsC6_BSu/pub?output=csv';
 const MONTHS = ['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
 const WDAYS = ['Dom','Seg','Ter','Qua','Qui','Sex','Sáb'];
 
 const BILLS = [
-  {id:1,  name:'OXIGAS RESIDUOS ESPECIAIS LTDA',         alias:'Oxigas',                  value:315,    variable:false, day:2,  bank:'SICOOB',   desc:'Coleta de resíduos'},
-  {id:2,  name:'Sicoob',                                  alias:'Sicoob – Capital',        value:50,     variable:false, day:2,  bank:'SICOOB',   desc:'Integralização de Capital'},
-  {id:3,  name:'MONEST COBRANCAS S.A',                    alias:'Monest',                  value:199.90, variable:false, day:5,  bank:'SICOOB',   desc:'Licença de uso'},
+  {id:1,  name:'OXIGAS RESIDUOS ESPECIAIS LTDA',         alias:'Oxigas',                  value:315,    variable:false, day:2,  bank:'SICOOB',   desc:'Coleta de residuos'},
+  {id:2,  name:'Sicoob',                                  alias:'Sicoob - Capital',        value:50,     variable:false, day:2,  bank:'SICOOB',   desc:'Integralizacao de Capital'},
+  {id:3,  name:'MONEST COBRANCAS S.A',                    alias:'Monest',                  value:199.90, variable:false, day:5,  bank:'SICOOB',   desc:'Licenca de uso'},
   {id:4,  name:'EMPRESA BRASILEIRA DE CORREIOS',          alias:'Correios',                value:0,      variable:true,  day:5,  bank:'SICOOB',   desc:'Frete dos correios'},
-  {id:5,  name:'SALÁRIOS DE FUNCIONÁRIOS',                alias:'Salários Funcionários',   value:0,      variable:true,  day:5,  special:'5° DU', bank:'SICOOB', desc:'Salários'},
-  {id:6,  name:'ANDRE LUIZ DUARTE FERREIRA',              alias:'Serviços – André',        value:650,    variable:false, day:5,  bank:'DINHEIRO', desc:'Prestação de Serviço'},
-  {id:7,  name:'P.B&E LABORATORIO OTICO LTDA',            alias:'P.B&E Lab Ótico',         value:0,      variable:true,  day:6,  bank:'SICOOB',   desc:'Tratamento Anti Risco'},
-  {id:8,  name:'Contabilidade Lima LTDA',                 alias:'Contabilidade',           value:810.50, variable:false, day:10, bank:'SICOOB',   desc:'Prestação de Serviço'},
-  {id:9,  name:'TRANSITANDO SERVIÇOS EXPRESSOS LTDA',     alias:'MotoFrete',               value:1450,   variable:false, day:10, bank:'SICOOB',   desc:'Serviços de MotoFrete'},
-  {id:10, name:'LWSA S/A',                                alias:'Bling',                   value:650,    variable:false, day:12, bank:'SICOOB',   desc:'Mensalidade Bling'},
+  {id:5,  name:'SALARIOS DE FUNCIONARIOS',                alias:'Salarios Funcionarios',   value:0,      variable:true,  day:5,  special:'5DU',   bank:'SICOOB', desc:'Salarios'},
+  {id:6,  name:'ANDRE LUIZ DUARTE FERREIRA',              alias:'Servicos - Andre',        value:650,    variable:false, day:5,  bank:'DINHEIRO', desc:'Prestacao de Servico'},
+  {id:7,  name:'P.B&E LABORATORIO OTICO LTDA',            alias:'P.B&E Lab Otico',         value:0,      variable:true,  day:0,  weekly:true,     bank:'SICOOB',   desc:'Tratamento Anti Risco (Semanal)'},
+  {id:8,  name:'Contabilidade Lima LTDA',                 alias:'Contabilidade',           value:810.50, variable:false, day:10, bank:'SICOOB',   desc:'Prestacao de Servico'},
+  {id:9,  name:'TRANSITANDO SERVICOS EXPRESSOS LTDA',     alias:'MotoFrete',               value:1450,   variable:false, day:10, bank:'SICOOB',   desc:'Servicos de MotoFrete'},
+  {id:10, name:'LWSA S/A',                                alias:'Bling',                   value:450,    variable:false, day:10, bank:'SICOOB',   desc:'Mensalidade Bling'},
+  {id:30, name:'LWSA S/A',                                alias:'Bling Rita',              value:120,    variable:false, day:10, bank:'DINHEIRO', desc:'Mensalidade Bling Rita'},
   {id:11, name:'CAMARA DOS DIRIGENTES LOJISTAS BH',       alias:'CDL | Unimed',            value:0,      variable:true,  day:12, bank:'SICOOB',   desc:'Mensalidade CDL'},
-  {id:12, name:'MAGNO ALBERTO MORAIS CARRARO',            alias:'Serviços – Magno',        value:800,    variable:false, day:12, bank:'SICOOB',   desc:'Serviços Prestados'},
-  {id:13, name:'CONSORCIO VALE TRANSPORTE (1ª)',          alias:'Vale Transporte 1ª',      value:0,      variable:true,  day:12, bank:'SICOOB',   desc:'Vale Transporte'},
-  {id:14, name:'Caixa Economica Federal',                 alias:'Empréstimo CEF',          value:0,      variable:true,  day:14, bank:'CAIXA',    desc:'Prestação do empréstimo'},
+  {id:12, name:'MAGNO ALBERTO MORAIS CARRARO',            alias:'Servicos - Magno',        value:800,    variable:false, day:12, bank:'SICOOB',   desc:'Servicos Prestados'},
+  {id:13, name:'CONSORCIO VALE TRANSPORTE',               alias:'Vale Transporte 1a',      value:0,      variable:true,  day:12, bank:'SICOOB',   desc:'Vale Transporte'},
+  {id:14, name:'Caixa Economica Federal',                 alias:'Emprestimo CEF',          value:0,      variable:true,  day:14, bank:'CAIXA',    desc:'Prestacao do emprestimo'},
   {id:15, name:'Conta Vivo Internet/Telefone',            alias:'Telefone/Internet',       value:0,      variable:true,  day:17, bank:'DINHEIRO', desc:'Internet e Telefone'},
-  {id:16, name:'DIXI VEXT SISTEMAS LTDA',                 alias:'Ponto Eletrônico',        value:70,     variable:false, day:20, bank:'SICOOB',   desc:'Sistema de Ponto'},
+  {id:16, name:'DIXI VEXT SISTEMAS LTDA',                 alias:'Ponto Eletronico',        value:70,     variable:false, day:20, bank:'SICOOB',   desc:'Sistema de Ponto'},
   {id:17, name:'Caixa Economica Federal',                 alias:'FGTS',                    value:0,      variable:true,  day:20, bank:'SICOOB',   desc:'FGTS'},
-  {id:18, name:'Documento de Arrecadação Simples',        alias:'DAS – Simples Nacional',  value:0,      variable:true,  day:20, bank:'SICOOB',   desc:'DAS mensal'},
-  {id:19, name:'Documentos de Arrecadação Federal',       alias:'DCTF',                    value:0,      variable:true,  day:20, bank:'SICOOB',   desc:'Arrecadação Federal'},
-  {id:20, name:'Documento de Arrecadação Estadual',       alias:'ICMS',                    value:0,      variable:true,  day:20, bank:'SICOOB',   desc:'Arrecadação Estadual'},
-  {id:21, name:'PERCILIA VELOSO NETO',                    alias:'Adiantamento – Percilia', value:0,      variable:true,  day:20, bank:'SICOOB',   desc:'Adiantamento de Salário'},
+  {id:18, name:'Documento de Arrecadacao Simples',        alias:'DAS - Simples Nacional',  value:0,      variable:true,  day:20, bank:'SICOOB',   desc:'DAS mensal'},
+  {id:19, name:'Documentos de Arrecadacao Federal',       alias:'DCTF',                    value:0,      variable:true,  day:20, bank:'SICOOB',   desc:'Arrecadacao Federal'},
+  {id:20, name:'Documento de Arrecadacao Estadual',       alias:'ICMS',                    value:0,      variable:true,  day:20, bank:'SICOOB',   desc:'Arrecadacao Estadual'},
+  {id:21, name:'PERCILIA VELOSO NETO',                    alias:'Adiantamento - Percilia', value:0,      variable:true,  day:20, bank:'SICOOB',   desc:'Adiantamento de Salario'},
   {id:22, name:'Andorinha Energia Solar',                 alias:'Energia Solar',           value:0,      variable:true,  day:22, bank:'SICOOB',   desc:'Energia Solar'},
   {id:23, name:'CEMIG',                                   alias:'CEMIG',                   value:0,      variable:true,  day:22, bank:'SICOOB',   desc:'Conta de energia'},
-  {id:24, name:'EMPRESA BRASILEIRA DE BENEFICIOS',        alias:'Premiação Funcionários',  value:0,      variable:true,  day:25, bank:'SICOOB',   desc:'Premiação'},
-  {id:25, name:'CAROLINE INACIA PINTO',                   alias:'Serviços – Carol',        value:1000,   variable:false, day:25, bank:'SICOOB',   desc:'Capacitação em sistemas'},
-  {id:26, name:'Caixa Economica Federal',                 alias:'Cesta de Serviços CEF',   value:0,      variable:true,  day:25, bank:'CAIXA',    desc:'Cesta de Serviços'},
-  {id:27, name:'CONSORCIO VALE TRANSPORTE (2ª)',          alias:'Vale Transporte 2ª',      value:0,      variable:true,  day:27, bank:'SICOOB',   desc:'Vale Transporte'},
-  {id:28, name:'DAS – Parcelamento',                      alias:'DAS – Parcelamento',      value:0,      variable:true,  day:30, bank:'SICOOB',   desc:'Simples Parcelado'},
-  {id:29, name:'ESTRELA – DISTRIBUIDORA (Aluguel)',       alias:'Aluguel',                 value:3850,   variable:false, day:30, bank:'SICOOB',   desc:'Pagamento de Aluguel'},
+  {id:24, name:'EMPRESA BRASILEIRA DE BENEFICIOS',        alias:'Premiacao Funcionarios',  value:0,      variable:true,  day:25, bank:'SICOOB',   desc:'Premiacao'},
+  {id:25, name:'CAROLINE INACIA PINTO',                   alias:'Servicos - Carol',        value:1000,   variable:false, day:25, bank:'SICOOB',   desc:'Capacitacao em sistemas'},
+  {id:26, name:'Caixa Economica Federal',                 alias:'Cesta de Servicos CEF',   value:0,      variable:true,  day:25, bank:'CAIXA',    desc:'Cesta de Servicos'},
+  {id:27, name:'CONSORCIO VALE TRANSPORTE',               alias:'Vale Transporte 2a',      value:0,      variable:true,  day:27, bank:'SICOOB',   desc:'Vale Transporte'},
+  {id:28, name:'DAS - Parcelamento',                      alias:'DAS - Parcelamento',      value:0,      variable:true,  day:30, bank:'SICOOB',   desc:'Simples Parcelado'},
+  {id:29, name:'ESTRELA - DISTRIBUIDORA (Aluguel)',       alias:'Aluguel',                 value:3850,   variable:false, day:30, bank:'SICOOB',   desc:'Pagamento de Aluguel'},
 ];
 
 let viewMode = 'month';
@@ -281,6 +283,12 @@ function workingDay(n, m, y) {
 
 function billDays(bill, m, y) {
   if (bill.special) return [workingDay(5, m, y)];
+  if (bill.weekly) {
+    const days = [];
+    const total = new Date(y, m+1, 0).getDate();
+    for (let d = 1; d <= total; d += 7) days.push(d);
+    return days;
+  }
   const max = new Date(y, m+1, 0).getDate();
   return [Math.min(bill.day, max)];
 }
@@ -463,21 +471,18 @@ async function syncSheet() {
   btn.classList.add('loading');
   btn.disabled = true;
   try {
-    // Tenta buscar CSV público da planilha
-    const url = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/export?format=csv&cachebust=${Date.now()}`;
+    const url = CSV_URL + '&cachebust=' + Date.now();
     const res = await fetch(url);
-    if (res.ok) {
-      const csv = await res.text();
-      parseSheet(csv);
-      const now = new Date().toLocaleTimeString('pt-BR');
-      document.getElementById('lastSync').textContent = `Última sync: ${now}`;
-      toast('Planilha sincronizada!');
-    } else {
-      throw new Error('HTTP ' + res.status);
-    }
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    const csv = await res.text();
+    const updated = parseSheet(csv);
+    const now = new Date().toLocaleTimeString('pt-BR');
+    document.getElementById('lastSync').textContent = 'Ultima sync: ' + now;
+    if (updated > 0) toast('Planilha sincronizada! ' + updated + ' valores atualizados.');
+    else toast('Planilha sincronizada!');
   } catch(e) {
+    console.warn('Sync error:', e);
     document.getElementById('lastSync').textContent = 'Sync falhou — usando dados locais';
-    toast('Usando dados da planilha local');
   }
   btn.classList.remove('loading');
   btn.disabled = false;
@@ -485,18 +490,73 @@ async function syncSheet() {
 }
 
 function parseSheet(csv) {
-  const lines = csv.split('\n').slice(1);
-  lines.forEach((line, i) => {
-    const cols = line.split(',');
-    if (!cols[0]) return;
-    const raw = cols[1]?.replace(/[^0-9,.]/g,'').replace(',','.');
-    const val = parseFloat(raw);
-    if (!isNaN(val) && BILLS[i]) {
-      BILLS[i].value = val;
-      BILLS[i].variable = false;
+  // Parse CSV properly handling quoted fields
+  function parseCSVLine(line) {
+    const result = [];
+    let cur = '', inQ = false;
+    for (let i = 0; i < line.length; i++) {
+      const c = line[i];
+      if (c === '"') { inQ = !inQ; }
+      else if (c === ',' && !inQ) { result.push(cur.trim()); cur = ''; }
+      else { cur += c; }
+    }
+    result.push(cur.trim());
+    return result;
+  }
+
+  const lines = csv.split('\n').slice(1); // skip header
+  let updated = 0;
+
+  // Build lookup by normalized supplier name
+  const billsByName = {};
+  BILLS.forEach(b => {
+    const key = b.name.toUpperCase().replace(/[^A-Z0-9]/g, '');
+    billsByName[key] = b;
+  });
+
+  // Reset all to variable=true first so removed values show as variable
+  BILLS.forEach(b => { b._sheetFound = false; });
+
+  lines.forEach(line => {
+    if (!line.trim()) return;
+    const cols = parseCSVLine(line);
+    const supplierRaw = cols[0] || '';
+    const valueRaw = cols[1] || '';
+    const dayRaw = cols[2] || '';
+
+    if (!supplierRaw) return;
+
+    const supplierKey = supplierRaw.toUpperCase().replace(/[^A-Z0-9]/g, '');
+    const bill = billsByName[supplierKey];
+
+    // Parse value — handle "Variavel", empty, or numeric
+    const cleanVal = valueRaw.replace(/[^0-9,.]/g, '').replace(',', '.');
+    const val = parseFloat(cleanVal);
+
+    if (bill) {
+      bill._sheetFound = true;
+      if (!isNaN(val) && val > 0) {
+        if (bill.value !== val) { bill.value = val; updated++; }
+        bill.variable = false;
+      } else {
+        bill.variable = true;
+        bill.value = 0;
+      }
+      // Update day if changed
+      const dayClean = dayRaw.trim();
+      const dayNum = parseInt(dayClean);
+      if (!isNaN(dayNum) && dayNum !== bill.day && !bill.weekly && !bill.special) {
+        bill.day = dayNum;
+        updated++;
+      }
     }
   });
+
+  return updated;
 }
+
+// Auto-sync a cada 5 minutos
+setInterval(syncSheet, 5 * 60 * 1000);
 
 // Init
 (async () => {
