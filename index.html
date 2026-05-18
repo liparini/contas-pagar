@@ -141,7 +141,7 @@ body{background:var(--bg);color:var(--text);font-family:-apple-system,'Segoe UI'
 
 <script>
 // URL CSV da planilha publicada
-var CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vSGN-eSmm-uYACPrCZLP6dFM_qz3eWhI3n-R2riUgNpA6qM_c_e55gyL7B0vFBiHfaSRmRLhsC6_BSu/pub?output=csv';
+var CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vSGN-eSmm-uYACPrCZLP6dFM_qz3eWhI3n-R2riUgNpA6qM_c_e55gyL7B0vFBiHfaSRmRLhsC6_BSu/pub?gid=0&single=true&output=csv';
 
 var MONTHS = ['Janeiro','Fevereiro','Marco','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
 var WDAYS  = ['Dom','Seg','Ter','Qua','Qui','Sex','Sab'];
@@ -422,7 +422,14 @@ function parseSheet(csv) {
     if (!fornecedor) return;
 
     // Valor
-    var cleanVal = valorRaw.replace(/[^0-9,.]/g,'').replace(',','.');
+    // Formato brasileiro: 1.000,00 -> remover pontos de milhar, trocar virgula por ponto
+    var cleanVal = valorRaw.replace(/[^0-9,.]/g,'');
+    // Se tem virgula E ponto: ponto eh milhar, virgula eh decimal (1.000,00)
+    // Se tem so virgula: virgula eh decimal (1000,50)
+    // Se tem so ponto: pode ser decimal americano (1000.50)
+    if (cleanVal.indexOf(',') >= 0) {
+      cleanVal = cleanVal.replace(/\./g,'').replace(',','.');
+    }
     var val = parseFloat(cleanVal);
     var isVariable = isNaN(val) || val <= 0 || valorRaw.toLowerCase().indexOf('vari') >= 0;
 
@@ -442,7 +449,12 @@ function parseSheet(csv) {
       special: venc.special,
       weekly: venc.weekly,
       bank: banco,
-      desc: historico.replace(/ref\. MM\/AAAA.*/i,'').replace(/ref MM\/AAAA.*/i,'').trim().replace(/[,-]+$/,'').trim()
+      desc: historico
+        .replace(/ref\.?\s*MM\/AAAA[^,]*/gi,'')
+        .replace(/n[\°o]?\s*[xX]+\/\d+/g,'')
+        .replace(/\s+-\s*$/,'')
+        .replace(/,\s*$/,'')
+        .trim()
     });
   });
 
@@ -454,15 +466,15 @@ function parseSheet(csv) {
 
 // ── Fetch com fallback de proxies ─────────────────────────
 async function fetchCSV() {
-  var t = '&t=' + Date.now();
+  var t = '&nocache=' + Date.now();
   // Direto
   try {
-    var r = await fetch(CSV_URL + t, {cache:'no-store'});
+    var r = await fetch(CSV_URL + t, {cache:'no-store', mode:'cors'});
     if (r.ok) { var txt=await r.text(); if (txt.indexOf(',')>=0) return txt; }
   } catch(e){}
   // allorigins
   try {
-    var r2 = await fetch('https://api.allorigins.win/raw?url='+encodeURIComponent(CSV_URL)+t, {cache:'no-store'});
+    var r2 = await fetch('https://api.allorigins.win/raw?url='+encodeURIComponent(CSV_URL+t), {cache:'no-store'});
     if (r2.ok) { var txt2=await r2.text(); if (txt2.indexOf(',')>=0) return txt2; }
   } catch(e){}
   // corsproxy
