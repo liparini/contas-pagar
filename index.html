@@ -466,23 +466,44 @@ function setView(v) {
 function prevMonth() { if(curMonth===0){curMonth=11;curYear--;}else curMonth--; render(); }
 function nextMonth() { if(curMonth===11){curMonth=0;curYear++;}else curMonth++; render(); }
 
+async function fetchCSV() {
+  // Tenta direto primeiro (funciona quando CORS esta liberado)
+  const direct = CSV_URL + '&cachebust=' + Date.now();
+  try {
+    const r = await fetch(direct, { cache: 'no-store' });
+    if (r.ok) { const t = await r.text(); if (t.includes(',')) return t; }
+  } catch(e) {}
+
+  // Fallback 1: allorigins proxy
+  try {
+    const proxy1 = 'https://api.allorigins.win/raw?url=' + encodeURIComponent(CSV_URL);
+    const r = await fetch(proxy1, { cache: 'no-store' });
+    if (r.ok) { const t = await r.text(); if (t.includes(',')) return t; }
+  } catch(e) {}
+
+  // Fallback 2: corsproxy.io
+  try {
+    const proxy2 = 'https://corsproxy.io/?' + encodeURIComponent(CSV_URL);
+    const r = await fetch(proxy2, { cache: 'no-store' });
+    if (r.ok) { const t = await r.text(); if (t.includes(',')) return t; }
+  } catch(e) {}
+
+  throw new Error('Todos os proxies falharam');
+}
+
 async function syncSheet() {
   const btn = document.getElementById('refreshBtn');
   btn.classList.add('loading');
   btn.disabled = true;
   try {
-    const url = CSV_URL + '&cachebust=' + Date.now();
-    const res = await fetch(url);
-    if (!res.ok) throw new Error('HTTP ' + res.status);
-    const csv = await res.text();
+    const csv = await fetchCSV();
     const updated = parseSheet(csv);
     const now = new Date().toLocaleTimeString('pt-BR');
-    document.getElementById('lastSync').textContent = 'Ultima sync: ' + now;
-    if (updated > 0) toast('Planilha sincronizada! ' + updated + ' valores atualizados.');
-    else toast('Planilha sincronizada!');
+    document.getElementById('lastSync').textContent = 'Sincronizado: ' + now;
+    toast(updated > 0 ? (updated + ' item(ns) atualizado(s)!') : 'Planilha sincronizada!');
   } catch(e) {
     console.warn('Sync error:', e);
-    document.getElementById('lastSync').textContent = 'Sync falhou — usando dados locais';
+    document.getElementById('lastSync').textContent = 'Sync falhou — verifique a publicacao';
   }
   btn.classList.remove('loading');
   btn.disabled = false;
@@ -490,7 +511,6 @@ async function syncSheet() {
 }
 
 function parseSheet(csv) {
-  // Parse CSV properly handling quoted fields
   function parseCSVLine(line) {
     const result = [];
     let cur = '', inQ = false;
@@ -504,51 +524,65 @@ function parseSheet(csv) {
     return result;
   }
 
-  const lines = csv.split('\n').slice(1); // skip header
+  const lines = csv.split('
+');
+  // Find header row
+  const headerIdx = lines.findIndex(l => l.toLowerCase().includes('fornecedor'));
+  const dataLines = headerIdx >= 0 ? lines.slice(headerIdx + 1) : lines.slice(1);
   let updated = 0;
 
-  // Build lookup by normalized supplier name
-  const billsByName = {};
+  // Build lookup by normalized name
+  const byName = {};
   BILLS.forEach(b => {
-    const key = b.name.toUpperCase().replace(/[^A-Z0-9]/g, '');
-    billsByName[key] = b;
+    const k = b.name.toUpperCase().replace(/[^A-Z0-9]/g, '');
+    byName[k] = b;
   });
 
-  // Reset all to variable=true first so removed values show as variable
-  BILLS.forEach(b => { b._sheetFound = false; });
-
-  lines.forEach(line => {
+  dataLines.forEach(line => {
     if (!line.trim()) return;
     const cols = parseCSVLine(line);
-    const supplierRaw = cols[0] || '';
-    const valueRaw = cols[1] || '';
-    const dayRaw = cols[2] || '';
+    const supplier = (cols[0] || '').replace(/^"|"$/g, '').trim();
+    const valueRaw = (cols[1] || '').replace(/^"|"$/g, '').trim();
+    const dayRaw   = (cols[2] || '').replace(/^"|"$/g, '').trim();
+    if (!supplier) return;
 
-    if (!supplierRaw) return;
+    const key = supplier.toUpperCase().replace(/[^A-Z0-9]/g, '');
+    const bill = byName[key];
 
-    const supplierKey = supplierRaw.toUpperCase().replace(/[^A-Z0-9]/g, '');
-    const bill = billsByName[supplierKey];
-
-    // Parse value — handle "Variavel", empty, or numeric
     const cleanVal = valueRaw.replace(/[^0-9,.]/g, '').replace(',', '.');
     const val = parseFloat(cleanVal);
 
     if (bill) {
-      bill._sheetFound = true;
       if (!isNaN(val) && val > 0) {
         if (bill.value !== val) { bill.value = val; updated++; }
         bill.variable = false;
       } else {
+        if (!bill.variable) updated++;
         bill.variable = true;
         bill.value = 0;
       }
-      // Update day if changed
-      const dayClean = dayRaw.trim();
-      const dayNum = parseInt(dayClean);
-      if (!isNaN(dayNum) && dayNum !== bill.day && !bill.weekly && !bill.special) {
+      const dayNum = parseInt(dayRaw);
+      if (!isNaN(dayNum) && !bill.weekly && !bill.special && bill.day !== dayNum) {
         bill.day = dayNum;
         updated++;
       }
+    } else if (supplier.length > 2) {
+      // Nova linha na planilha que nao existe no sistema — adiciona dinamicamente
+      const dayNum = parseInt(dayRaw);
+      const newId = 1000 + BILLS.length;
+      const newBill = {
+        id: newId,
+        name: supplier,
+        alias: supplier.length > 30 ? supplier.substring(0, 30) + '...' : supplier,
+        value: (!isNaN(val) && val > 0) ? val : 0,
+        variable: isNaN(val) || val <= 0,
+        day: !isNaN(dayNum) ? dayNum : 1,
+        bank: (cols[6] || '').replace(/^"|"$/g,'').trim() || 'SICOOB',
+        desc: (cols[4] || '').replace(/^"|"$/g,'').trim() || supplier
+      };
+      BILLS.push(newBill);
+      byName[key] = newBill;
+      updated++;
     }
   });
 
