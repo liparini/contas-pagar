@@ -26,7 +26,7 @@ body{background:var(--bg);color:var(--text);font-family:-apple-system,'Segoe UI'
 .month-nav{display:flex;align-items:center;gap:4px;flex-shrink:0}
 .nav-btn{background:var(--surface);border:.5px solid var(--border);border-radius:var(--r);padding:5px 9px;cursor:pointer;color:var(--text2);font-size:16px;display:flex;align-items:center;transition:border-color .15s}
 .month-label{font-size:13px;font-weight:500;min-width:120px;text-align:center}
-.refresh-btn{background:var(--surface);border:.5px solid var(--border);border-radius:var(--r);padding:6px 12px;cursor:pointer;font-size:13px;color:var(--text2);display:flex;align-items:center;gap:5px;font-family:inherit;transition:border-color .15s;flex-shrink:0}
+.refresh-btn{background:var(--surface);border:.5px solid var(--border);border-radius:var(--r);padding:6px 12px;cursor:pointer;font-size:13px;color:var(--text2);display:flex;align-items:center;gap:5px;font-family:inherit;flex-shrink:0}
 .refresh-btn.loading i{animation:spin .8s linear infinite}
 @keyframes spin{to{transform:rotate(360deg)}}
 .summary{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:1.25rem}
@@ -70,6 +70,7 @@ body{background:var(--bg);color:var(--text);font-family:-apple-system,'Segoe UI'
 .pill-soon{background:var(--amber-bg);color:var(--amber)}
 .empty{text-align:center;padding:3rem 1rem;color:var(--text2);font-size:14px}
 .empty i{font-size:32px;display:block;margin:0 auto 8px;color:var(--text3)}
+.loading-state{text-align:center;padding:3rem 1rem;color:var(--text2);font-size:14px}
 .modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.4);display:flex;align-items:center;justify-content:center;z-index:100;padding:1rem;opacity:0;pointer-events:none;transition:opacity .2s}
 .modal-overlay.open{opacity:1;pointer-events:all}
 .modal{background:var(--surface);border-radius:var(--rl);padding:1.5rem;max-width:440px;width:100%;border:.5px solid var(--border2)}
@@ -87,7 +88,7 @@ body{background:var(--bg);color:var(--text);font-family:-apple-system,'Segoe UI'
   <div class="header-row">
     <div class="app-header">
       <h1><i class="ti ti-report-money"></i>Contas a Pagar</h1>
-      <p id="subtitle">Carregando dados...</p>
+      <p id="subtitle">Carregando dados da planilha...</p>
     </div>
     <div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px">
       <button class="refresh-btn" id="refreshBtn" onclick="syncSheet()">
@@ -105,7 +106,7 @@ body{background:var(--bg);color:var(--text);font-family:-apple-system,'Segoe UI'
     </div>
     <div class="search-wrap">
       <i class="ti ti-search"></i>
-      <input class="search-input" type="text" id="search" placeholder="Buscar fornecedor ou descricao..." oninput="render()">
+      <input class="search-input" type="text" id="search" placeholder="Buscar fornecedor..." oninput="render()">
     </div>
     <div class="month-nav">
       <button class="nav-btn" onclick="prevMonth()"><i class="ti ti-chevron-left"></i></button>
@@ -121,12 +122,12 @@ body{background:var(--bg);color:var(--text);font-family:-apple-system,'Segoe UI'
   </div>
   <div class="progress-wrap">
     <div class="progress-header">
-      <span>Progresso de pagamentos - mes atual</span>
+      <span>Progresso de pagamentos</span>
       <span id="progressPct">0%</span>
     </div>
     <div class="progress-bar"><div class="progress-fill" id="progressFill" style="width:0%"></div></div>
   </div>
-  <div id="list"></div>
+  <div id="list"><div class="loading-state"><i class="ti ti-loader" style="font-size:28px;display:block;margin:0 auto 8px"></i>Carregando planilha...</div></div>
 </div>
 
 <div class="modal-overlay" id="modalOverlay" onclick="closeModal(event)">
@@ -139,49 +140,21 @@ body{background:var(--bg);color:var(--text);font-family:-apple-system,'Segoe UI'
 <div class="toast" id="toast"></div>
 
 <script>
+// URL CSV da planilha publicada
 var CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vSGN-eSmm-uYACPrCZLP6dFM_qz3eWhI3n-R2riUgNpA6qM_c_e55gyL7B0vFBiHfaSRmRLhsC6_BSu/pub?output=csv';
-var MONTHS = ['Janeiro','Fevereiro','Marco','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
-var WDAYS = ['Dom','Seg','Ter','Qua','Qui','Sex','Sab'];
 
-var BILLS = [
-  {id:1,  name:'OXIGAS RESIDUOS ESPECIAIS LTDA',        alias:'Oxigas',               value:315,    variable:false, day:2,  bank:'SICOOB',   desc:'Coleta de residuos'},
-  {id:2,  name:'SICOOB',                                 alias:'Sicoob - Capital',     value:50,     variable:false, day:2,  bank:'SICOOB',   desc:'Integralizacao de Capital'},
-  {id:3,  name:'MONEST COBRANCAS SA',                    alias:'Monest',               value:199.90, variable:false, day:5,  bank:'SICOOB',   desc:'Licenca de uso'},
-  {id:4,  name:'EMPRESA BRASILEIRA DE CORREIOS',         alias:'Correios',             value:0,      variable:true,  day:5,  bank:'SICOOB',   desc:'Frete dos correios'},
-  {id:5,  name:'SALARIOS DE FUNCIONARIOS',               alias:'Salarios',             value:0,      variable:true,  day:5,  special:true,    bank:'SICOOB',   desc:'Salarios'},
-  {id:6,  name:'ANDRE LUIZ DUARTE FERREIRA',             alias:'Servicos - Andre',     value:650,    variable:false, day:5,  bank:'DINHEIRO', desc:'Prestacao de Servico'},
-  {id:7,  name:'PBELABORATORIO OTICO LTDA',              alias:'PBE Lab Otico',        value:0,      variable:true,  day:0,  weekly:true,     bank:'SICOOB',   desc:'Tratamento Anti Risco (Semanal)'},
-  {id:8,  name:'CONTABILIDADE LIMA LTDA',                alias:'Contabilidade',        value:810.50, variable:false, day:10, bank:'SICOOB',   desc:'Prestacao de Servico'},
-  {id:9,  name:'TRANSITANDO SERVICOS EXPRESSOS LTDA',    alias:'MotoFrete',            value:1450,   variable:false, day:10, bank:'SICOOB',   desc:'Servicos de MotoFrete'},
-  {id:10, name:'LWSA SA',                                alias:'Bling',                value:450,    variable:false, day:10, bank:'SICOOB',   desc:'Mensalidade Bling'},
-  {id:30, name:'LWSA SA RITA',                           alias:'Bling Rita',           value:120,    variable:false, day:10, bank:'DINHEIRO', desc:'Mensalidade Bling Rita'},
-  {id:11, name:'CAMARA DOS DIRIGENTES LOJISTAS BH',      alias:'CDL Unimed',           value:0,      variable:true,  day:12, bank:'SICOOB',   desc:'Mensalidade CDL'},
-  {id:12, name:'MAGNO ALBERTO MORAIS CARRARO',           alias:'Servicos - Magno',     value:800,    variable:false, day:12, bank:'SICOOB',   desc:'Servicos Prestados'},
-  {id:13, name:'CONSORCIO VALE TRANSPORTE',              alias:'Vale Transporte 1a',   value:0,      variable:true,  day:12, bank:'SICOOB',   desc:'Vale Transporte'},
-  {id:14, name:'CAIXA ECONOMICA FEDERAL EMPRESTIMO',     alias:'Emprestimo CEF',       value:0,      variable:true,  day:14, bank:'CAIXA',    desc:'Prestacao do emprestimo'},
-  {id:15, name:'CONTA VIVO INTERNET TELEFONE',           alias:'Telefone Internet',    value:0,      variable:true,  day:17, bank:'DINHEIRO', desc:'Internet e Telefone'},
-  {id:16, name:'DIXI VEXT SISTEMAS LTDA',                alias:'Ponto Eletronico',     value:70,     variable:false, day:20, bank:'SICOOB',   desc:'Sistema de Ponto'},
-  {id:17, name:'CAIXA ECONOMICA FEDERAL FGTS',           alias:'FGTS',                 value:0,      variable:true,  day:20, bank:'SICOOB',   desc:'FGTS'},
-  {id:18, name:'DOCUMENTO DE ARRECADACAO SIMPLES',       alias:'DAS - Simples',        value:0,      variable:true,  day:20, bank:'SICOOB',   desc:'DAS mensal'},
-  {id:19, name:'DOCUMENTOS DE ARRECADACAO FEDERAL',      alias:'DCTF',                 value:0,      variable:true,  day:20, bank:'SICOOB',   desc:'Arrecadacao Federal'},
-  {id:20, name:'DOCUMENTO DE ARRECADACAO ESTADUAL',      alias:'ICMS',                 value:0,      variable:true,  day:20, bank:'SICOOB',   desc:'Arrecadacao Estadual'},
-  {id:21, name:'PERCILIA VELOSO NETO',                   alias:'Adiantamento Percilia',value:0,      variable:true,  day:20, bank:'SICOOB',   desc:'Adiantamento de Salario'},
-  {id:22, name:'ANDORINHA ENERGIA SOLAR',                alias:'Energia Solar',        value:0,      variable:true,  day:22, bank:'SICOOB',   desc:'Energia Solar'},
-  {id:23, name:'CEMIG',                                  alias:'CEMIG',                value:0,      variable:true,  day:22, bank:'SICOOB',   desc:'Conta de energia'},
-  {id:24, name:'EMPRESA BRASILEIRA DE BENEFICIOS',       alias:'Premiacao Funcionarios',value:0,     variable:true,  day:25, bank:'SICOOB',   desc:'Premiacao'},
-  {id:25, name:'CAROLINE INACIA PINTO',                  alias:'Servicos - Carol',     value:1000,   variable:false, day:25, bank:'SICOOB',   desc:'Capacitacao em sistemas'},
-  {id:26, name:'CAIXA ECONOMICA FEDERAL CESTA',          alias:'Cesta de Servicos CEF',value:0,      variable:true,  day:25, bank:'CAIXA',    desc:'Cesta de Servicos'},
-  {id:27, name:'CONSORCIO VALE TRANSPORTE 2',            alias:'Vale Transporte 2a',   value:0,      variable:true,  day:27, bank:'SICOOB',   desc:'Vale Transporte'},
-  {id:28, name:'DAS PARCELAMENTO',                       alias:'DAS - Parcelamento',   value:0,      variable:true,  day:30, bank:'SICOOB',   desc:'Simples Parcelado'},
-  {id:29, name:'ESTRELA DISTRIBUIDORA',                  alias:'Aluguel',              value:3850,   variable:false, day:30, bank:'SICOOB',   desc:'Pagamento de Aluguel'}
-];
+var MONTHS = ['Janeiro','Fevereiro','Marco','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
+var WDAYS  = ['Dom','Seg','Ter','Qua','Qui','Sex','Sab'];
+
+// BILLS e carregado dinamicamente da planilha — inicia vazio
+var BILLS = [];
 
 var viewMode = 'month';
 var curMonth = new Date().getMonth();
 var curYear  = new Date().getFullYear();
-var paid = new Set(JSON.parse(localStorage.getItem('paid_v2') || '[]'));
+var paid = new Set(JSON.parse(localStorage.getItem('paid_v3') || '[]'));
 
-function savePaid() { localStorage.setItem('paid_v2', JSON.stringify([...paid])); }
+function savePaid() { localStorage.setItem('paid_v3', JSON.stringify([...paid])); }
 function pkey(id, d, m, y) { return id + '_' + d + '_' + m + '_' + y; }
 function brl(v) { return v.toLocaleString('pt-BR', {style:'currency', currency:'BRL'}); }
 
@@ -192,25 +165,50 @@ function toast(msg) {
   setTimeout(function(){ t.classList.remove('show'); }, 2500);
 }
 
-function workingDay(n, m, y) {
-  var count = 0, d = 1;
-  while (count < n) {
-    var dow = new Date(y, m, d).getDay();
-    if (dow !== 0 && dow !== 6) count++;
-    if (count < n) d++;
+// Analisa o campo Vencimento — retorna {days:[], special:false, weekly:false}
+function parseVencimento(raw) {
+  if (!raw) return {days:[1], special:false, weekly:false};
+  var s = raw.trim().toUpperCase();
+
+  // "5 DIA UTIL" ou "5 DU" ou "5 DIAS UTEIS"
+  if (s.indexOf('UTIL') >= 0 || s.indexOf('DU') >= 0) {
+    return {days:[], special:true, weekly:false};
   }
-  return d;
+  // "SEMANAL"
+  if (s.indexOf('SEMANAL') >= 0) {
+    return {days:[], special:false, weekly:true};
+  }
+  // "12 E 27" ou "12,27"
+  var multi = s.match(/(\d+)\s*[eE,]\s*(\d+)/);
+  if (multi) {
+    return {days:[parseInt(multi[1]), parseInt(multi[2])], special:false, weekly:false};
+  }
+  // numero simples
+  var n = parseInt(s);
+  if (!isNaN(n)) return {days:[n], special:false, weekly:false};
+
+  return {days:[1], special:false, weekly:false};
 }
 
+// Retorna os dias do mes em que a conta vence
 function billDays(bill, m, y) {
-  if (bill.special) return [workingDay(5, m, y)];
+  if (bill.special) {
+    // 5o dia util
+    var count = 0, d = 1;
+    while (count < 5) {
+      var dow = new Date(y, m, d).getDay();
+      if (dow !== 0 && dow !== 6) count++;
+      if (count < 5) d++;
+    }
+    return [d];
+  }
   if (bill.weekly) {
     var days = [], total = new Date(y, m+1, 0).getDate();
-    for (var d = 1; d <= total; d += 7) days.push(d);
+    for (var wd = 1; wd <= total; wd += 7) days.push(wd);
     return days;
   }
   var max = new Date(y, m+1, 0).getDate();
-  return [Math.min(bill.day, max)];
+  return bill.days.map(function(d){ return Math.min(d, max); });
 }
 
 function getStatus(billDay, m, y, isPaid) {
@@ -228,7 +226,12 @@ function allEntries(m, y) {
   BILLS.forEach(function(b) {
     billDays(b, m, y).forEach(function(d) {
       var k = pkey(b.id, d, m, y);
-      result.push(Object.assign({}, b, {billDay: d, key: k, isPaid: paid.has(k)}));
+      result.push({
+        id:b.id, name:b.name, alias:b.alias, value:b.value,
+        variable:b.variable, bank:b.bank, desc:b.desc,
+        special:b.special, weekly:b.weekly,
+        billDay:d, key:k, isPaid:paid.has(k)
+      });
     });
   });
   return result;
@@ -236,7 +239,7 @@ function allEntries(m, y) {
 
 function filteredEntries() {
   var today = new Date();
-  var q = document.getElementById('search').value.toLowerCase();
+  var q = (document.getElementById('search').value || '').toLowerCase();
   var entries = allEntries(curMonth, curYear);
 
   if (viewMode === 'day') {
@@ -253,7 +256,9 @@ function filteredEntries() {
   }
 
   if (q) entries = entries.filter(function(e) {
-    return e.name.toLowerCase().includes(q) || e.alias.toLowerCase().includes(q) || e.desc.toLowerCase().includes(q);
+    return (e.name||'').toLowerCase().indexOf(q) >= 0 ||
+           (e.alias||'').toLowerCase().indexOf(q) >= 0 ||
+           (e.desc||'').toLowerCase().indexOf(q) >= 0;
   });
 
   return entries.sort(function(a,b){ return a.billDay - b.billDay; });
@@ -261,27 +266,35 @@ function filteredEntries() {
 
 function render() {
   document.getElementById('monthLabel').textContent = MONTHS[curMonth] + ' ' + curYear;
+
+  if (BILLS.length === 0) {
+    document.getElementById('list').innerHTML = '<div class="loading-state"><i class="ti ti-loader" style="font-size:28px;display:block;margin:0 auto 8px"></i>Aguardando planilha...</div>';
+    return;
+  }
+
   var all = allEntries(curMonth, curYear);
-  var fixedTotal  = all.filter(function(e){ return !e.variable; }).reduce(function(s,e){ return s+e.value; }, 0);
-  var paidTotal   = all.filter(function(e){ return e.isPaid && !e.variable; }).reduce(function(s,e){ return s+e.value; }, 0);
-  var pendTotal   = all.filter(function(e){ return !e.isPaid && !e.variable; }).reduce(function(s,e){ return s+e.value; }, 0);
   var today = new Date(); today.setHours(0,0,0,0);
+
+  var fixedTotal   = all.filter(function(e){ return !e.variable; }).reduce(function(s,e){ return s+e.value; }, 0);
+  var paidTotal    = all.filter(function(e){ return e.isPaid && !e.variable; }).reduce(function(s,e){ return s+e.value; }, 0);
+  var pendTotal    = all.filter(function(e){ return !e.isPaid && !e.variable; }).reduce(function(s,e){ return s+e.value; }, 0);
   var overdueTotal = all.filter(function(e){
     return !e.isPaid && !e.variable && new Date(curYear, curMonth, e.billDay) < today;
   }).reduce(function(s,e){ return s+e.value; }, 0);
 
-  document.getElementById('sTotal').textContent = brl(fixedTotal) + (all.some(function(e){ return e.variable; }) ? ' +var.' : '');
-  document.getElementById('sPending').textContent = brl(pendTotal);
-  document.getElementById('sPaid').textContent = brl(paidTotal);
-  document.getElementById('sOverdue').textContent = overdueTotal > 0 ? brl(overdueTotal) : '-';
+  document.getElementById('sTotal').textContent    = brl(fixedTotal) + (all.some(function(e){ return e.variable; }) ? ' +var.' : '');
+  document.getElementById('sPending').textContent  = brl(pendTotal);
+  document.getElementById('sPaid').textContent     = brl(paidTotal);
+  document.getElementById('sOverdue').textContent  = overdueTotal > 0 ? brl(overdueTotal) : '-';
+  document.getElementById('subtitle').textContent  = BILLS.length + ' contas . ' + all.filter(function(e){ return e.isPaid; }).length + ' pagas este mes';
 
   var pct = fixedTotal > 0 ? Math.round((paidTotal / fixedTotal) * 100) : 0;
   document.getElementById('progressFill').style.width = pct + '%';
-  document.getElementById('progressPct').textContent = pct + '%';
-  document.getElementById('subtitle').textContent = BILLS.length + ' contas cadastradas . ' + all.filter(function(e){ return e.isPaid; }).length + ' pagas este mes';
+  document.getElementById('progressPct').textContent  = pct + '%';
 
   var entries = filteredEntries();
   var list = document.getElementById('list');
+
   if (!entries.length) {
     list.innerHTML = '<div class="empty"><i class="ti ti-check"></i>Nenhuma conta neste periodo</div>';
     return;
@@ -298,30 +311,31 @@ function render() {
 
   Object.keys(groups).map(Number).sort(function(a,b){ return a-b; }).forEach(function(day) {
     var bd = new Date(curYear, curMonth, day);
-    var isToday   = day === todayD && curMonth === todayM && curYear === todayY;
-    var isOverdue = bd < today && !isToday;
-    var lblCls = isToday ? 'lbl-today' : isOverdue ? 'lbl-overdue' : '';
-    var wday = WDAYS[bd.getDay()];
-    var suffix = isToday ? ' - hoje' : isOverdue ? ' - vencido' : '';
+    var isToday   = (day === todayD && curMonth === todayM && curYear === todayY);
+    var isOverdue = (bd < today && !isToday);
+    var lblCls    = isToday ? 'lbl-today' : isOverdue ? 'lbl-overdue' : '';
+    var suffix    = isToday ? ' - hoje' : isOverdue ? ' - vencido' : '';
 
-    html += '<div class="day-group"><div class="day-label ' + lblCls + '"><span class="dot"></span>Dia ' + day + ' . ' + wday + suffix + '</div>';
+    html += '<div class="day-group"><div class="day-label ' + lblCls + '"><span class="dot"></span>Dia ' + day + ' . ' + WDAYS[bd.getDay()] + suffix + '</div>';
 
     groups[day].forEach(function(e) {
       var st = getStatus(e.billDay, curMonth, curYear, e.isPaid);
-      var cardCls = e.isPaid ? 'paid' : st === 'overdue' ? 'overdue' : st === 'today' ? 'due-today' : st === 'soon' ? 'due-soon' : '';
-      var pill = e.isPaid ? '<span class="pill pill-paid">Pago</span>'
-        : st === 'overdue' ? '<span class="pill pill-overdue">Vencido</span>'
-        : st === 'today'   ? '<span class="pill pill-today">Hoje</span>'
-        : st === 'soon'    ? '<span class="pill pill-soon">Em breve</span>' : '';
-      var valHtml = e.variable ? '<span class="bill-value var">Valor variavel</span>' : '<span class="bill-value">' + brl(e.value) + '</span>';
+      var cardCls = e.isPaid ? 'paid' : st==='overdue' ? 'overdue' : st==='today' ? 'due-today' : st==='soon' ? 'due-soon' : '';
+      var pill    = e.isPaid          ? '<span class="pill pill-paid">Pago</span>'
+                  : st==='overdue'    ? '<span class="pill pill-overdue">Vencido</span>'
+                  : st==='today'      ? '<span class="pill pill-today">Hoje</span>'
+                  : st==='soon'       ? '<span class="pill pill-soon">Em breve</span>' : '';
+      var valHtml = e.variable
+        ? '<span class="bill-value var">Valor variavel</span>'
+        : '<span class="bill-value">' + brl(e.value) + '</span>';
 
       html += '<div class="bill-card ' + cardCls + '" onclick="showDetail(\'' + e.key + '\')">'
-        + '<button class="check-btn ' + (e.isPaid ? 'checked' : '') + '" onclick="event.stopPropagation();togglePaid(\'' + e.key + '\')">'
+        + '<button class="check-btn ' + (e.isPaid?'checked':'') + '" onclick="event.stopPropagation();togglePaid(\'' + e.key + '\')">'
         + '<i class="ti ti-check"></i></button>'
-        + '<div class="bill-info"><div class="bill-name">' + e.alias + '</div>'
-        + '<div class="bill-sub">' + e.desc + ' . Dia ' + e.billDay + '</div></div>'
+        + '<div class="bill-info"><div class="bill-name">' + (e.alias||e.name) + '</div>'
+        + '<div class="bill-sub">' + (e.desc||'') + '</div></div>'
         + '<div class="bill-right">' + valHtml
-        + '<div class="pills">' + pill + '<span class="pill pill-bank">' + e.bank + '</span></div></div></div>';
+        + '<div class="pills">' + pill + '<span class="pill pill-bank">' + (e.bank||'') + '</span></div></div></div>';
     });
     html += '</div>';
   });
@@ -339,15 +353,15 @@ function showDetail(key) {
   var all = allEntries(curMonth, curYear);
   var e = all.find(function(x){ return x.key === key; });
   if (!e) return;
-  document.getElementById('modalTitle').textContent = e.alias;
+  document.getElementById('modalTitle').textContent = e.alias || e.name;
   document.getElementById('modalContent').innerHTML =
     '<div class="modal-row"><span class="modal-label">Fornecedor</span><span class="modal-val">' + e.name + '</span></div>'
-    + '<div class="modal-row"><span class="modal-label">Descricao</span><span class="modal-val">' + e.desc + '</span></div>'
-    + '<div class="modal-row"><span class="modal-label">Vencimento</span><span class="modal-val">Dia ' + e.billDay + (e.special ? ' (5 dia util)' : '') + '</span></div>'
+    + '<div class="modal-row"><span class="modal-label">Descricao</span><span class="modal-val">' + (e.desc||'-') + '</span></div>'
+    + '<div class="modal-row"><span class="modal-label">Vencimento</span><span class="modal-val">Dia ' + e.billDay + (e.special?' (5 dia util)':'') + (e.weekly?' (semanal)':'') + '</span></div>'
     + '<div class="modal-row"><span class="modal-label">Valor</span><span class="modal-val">' + (e.variable ? 'Variavel' : brl(e.value)) + '</span></div>'
-    + '<div class="modal-row"><span class="modal-label">Pagamento via</span><span class="modal-val">' + e.bank + '</span></div>'
-    + '<div class="modal-row"><span class="modal-label">Status</span><span class="modal-val">' + (e.isPaid ? 'Pago' : 'Pendente') + '</span></div>'
-    + '<div style="margin-top:1rem"><button class="modal-close" style="background:' + (e.isPaid ? 'var(--red-bg);color:var(--red)' : 'var(--green-bg);color:var(--green-text)') + '" onclick="togglePaid(\'' + e.key + '\');closeModal()">' + (e.isPaid ? 'Desmarcar pagamento' : 'Marcar como pago') + '</button></div>';
+    + '<div class="modal-row"><span class="modal-label">Pagamento via</span><span class="modal-val">' + (e.bank||'-') + '</span></div>'
+    + '<div class="modal-row"><span class="modal-label">Status</span><span class="modal-val">' + (e.isPaid?'Pago':'Pendente') + '</span></div>'
+    + '<div style="margin-top:1rem"><button class="modal-close" style="background:' + (e.isPaid?'var(--red-bg);color:var(--red)':'var(--green-bg);color:var(--green-text)') + '" onclick="togglePaid(\'' + e.key + '\');closeModal()">' + (e.isPaid?'Desmarcar pagamento':'Marcar como pago') + '</button></div>';
   document.getElementById('modalOverlay').classList.add('open');
 }
 
@@ -358,21 +372,22 @@ function closeModal(ev) {
 
 function setView(v) {
   viewMode = v;
-  document.querySelectorAll('.filter-btn').forEach(function(b, i) {
+  document.querySelectorAll('.filter-btn').forEach(function(b,i){
     b.classList.toggle('active', ['day','month','week','all'][i] === v);
   });
   render();
 }
-function prevMonth() { if(curMonth===0){curMonth=11;curYear--;}else curMonth--; render(); }
-function nextMonth() { if(curMonth===11){curMonth=0;curYear++;}else curMonth++; render(); }
+function prevMonth(){ if(curMonth===0){curMonth=11;curYear--;}else curMonth--; render(); }
+function nextMonth(){ if(curMonth===11){curMonth=0;curYear++;}else curMonth++; render(); }
 
+// ── CSV parser ────────────────────────────────────────────
 function parseCSVLine(line) {
-  var result = [], cur = '', inQ = false;
-  for (var i = 0; i < line.length; i++) {
-    var c = line[i];
-    if (c === '"') { inQ = !inQ; }
-    else if (c === ',' && !inQ) { result.push(cur.trim()); cur = ''; }
-    else { cur += c; }
+  var result=[], cur='', inQ=false;
+  for (var i=0; i<line.length; i++) {
+    var c=line[i];
+    if (c==='"') { inQ=!inQ; }
+    else if (c===',' && !inQ) { result.push(cur.trim()); cur=''; }
+    else { cur+=c; }
   }
   result.push(cur.trim());
   return result;
@@ -380,80 +395,82 @@ function parseCSVLine(line) {
 
 function parseSheet(csv) {
   var lines = csv.split('\n');
-  var headerIdx = -1;
-  for (var i = 0; i < lines.length; i++) {
-    if (lines[i].toLowerCase().indexOf('fornecedor') >= 0) { headerIdx = i; break; }
-  }
-  var dataLines = lines.slice(headerIdx >= 0 ? headerIdx + 1 : 1);
-  var updated = 0;
 
-  var byName = {};
-  BILLS.forEach(function(b) {
-    var k = b.name.toUpperCase().replace(/[^A-Z0-9]/g, '');
-    byName[k] = b;
-  });
+  // Encontra linha do cabecalho (contem "Fornecedor")
+  var hIdx = -1;
+  for (var i=0; i<Math.min(lines.length,5); i++) {
+    if (lines[i].toLowerCase().indexOf('fornecedor') >= 0) { hIdx=i; break; }
+  }
+  var dataLines = lines.slice(hIdx >= 0 ? hIdx+1 : 1);
+
+  var newBills = [];
+  var id = 1;
 
   dataLines.forEach(function(line) {
-    if (!line.trim()) return;
-    var cols = parseCSVLine(line);
-    var supplier = (cols[0] || '').replace(/^"|"$/g, '').trim();
-    var valueRaw = (cols[1] || '').replace(/^"|"$/g, '').trim();
-    var dayRaw   = (cols[2] || '').replace(/^"|"$/g, '').trim();
-    var bankRaw  = (cols[6] || '').replace(/^"|"$/g, '').trim();
-    var descRaw  = (cols[4] || '').replace(/^"|"$/g, '').trim();
-    if (!supplier) return;
+    var trimmed = line.trim();
+    if (!trimmed || trimmed === ',,,,,,,') return;
 
-    var key = supplier.toUpperCase().replace(/[^A-Z0-9]/g, '');
-    var bill = byName[key];
-    var cleanVal = valueRaw.replace(/[^0-9,.]/g, '').replace(',', '.');
+    var cols = parseCSVLine(trimmed);
+    // cols: 0=Fornecedor, 1=Valor, 2=Vencimento, 3=PagMensal, 4=Historico, 5=DescExtrato, 6=Pagamento
+    var fornecedor = (cols[0]||'').replace(/^"|"$/g,'').trim();
+    var valorRaw   = (cols[1]||'').replace(/^"|"$/g,'').trim();
+    var vencRaw    = (cols[2]||'').replace(/^"|"$/g,'').trim();
+    var descExt    = (cols[5]||'').replace(/^"|"$/g,'').trim(); // Descricao Extrato = alias
+    var banco      = (cols[6]||'').replace(/^"|"$/g,'').trim();
+    var historico  = (cols[4]||'').replace(/^"|"$/g,'').trim();
+
+    if (!fornecedor) return;
+
+    // Valor
+    var cleanVal = valorRaw.replace(/[^0-9,.]/g,'').replace(',','.');
     var val = parseFloat(cleanVal);
-    var dayNum = parseInt(dayRaw);
+    var isVariable = isNaN(val) || val <= 0 || valorRaw.toLowerCase().indexOf('vari') >= 0;
 
-    if (bill) {
-      if (!isNaN(val) && val > 0) {
-        if (bill.value !== val) { bill.value = val; updated++; }
-        bill.variable = false;
-      } else {
-        if (!bill.variable) updated++;
-        bill.variable = true; bill.value = 0;
-      }
-      if (!isNaN(dayNum) && !bill.weekly && !bill.special && bill.day !== dayNum) {
-        bill.day = dayNum; updated++;
-      }
-    } else if (supplier.length > 2) {
-      var newId = 1000 + BILLS.length;
-      var newBill = {
-        id: newId, name: supplier,
-        alias: supplier.length > 30 ? supplier.substring(0, 28) + '...' : supplier,
-        value: (!isNaN(val) && val > 0) ? val : 0,
-        variable: isNaN(val) || val <= 0,
-        day: !isNaN(dayNum) ? dayNum : 1,
-        bank: bankRaw || 'SICOOB',
-        desc: descRaw || supplier
-      };
-      BILLS.push(newBill);
-      byName[key] = newBill;
-      updated++;
-    }
+    // Vencimento
+    var venc = parseVencimento(vencRaw);
+
+    // Alias: usa descricao extrato bancario se disponivel, senao o nome
+    var alias = descExt || fornecedor;
+
+    newBills.push({
+      id: id++,
+      name: fornecedor,
+      alias: alias,
+      value: isVariable ? 0 : val,
+      variable: isVariable,
+      days: venc.days,
+      special: venc.special,
+      weekly: venc.weekly,
+      bank: banco,
+      desc: historico.replace(/ref\. MM\/AAAA.*/i,'').replace(/ref MM\/AAAA.*/i,'').trim().replace(/[,-]+$/,'').trim()
+    });
   });
-  return updated;
+
+  if (newBills.length > 0) {
+    BILLS = newBills;
+  }
+  return newBills.length;
 }
 
+// ── Fetch com fallback de proxies ─────────────────────────
 async function fetchCSV() {
-  var url = CSV_URL + '&t=' + Date.now();
+  var t = '&t=' + Date.now();
+  // Direto
   try {
-    var r = await fetch(url, {cache: 'no-store'});
-    if (r.ok) { var t = await r.text(); if (t.indexOf(',') >= 0) return t; }
-  } catch(e) {}
+    var r = await fetch(CSV_URL + t, {cache:'no-store'});
+    if (r.ok) { var txt=await r.text(); if (txt.indexOf(',')>=0) return txt; }
+  } catch(e){}
+  // allorigins
   try {
-    var r2 = await fetch('https://api.allorigins.win/raw?url=' + encodeURIComponent(CSV_URL) + '&t=' + Date.now(), {cache:'no-store'});
-    if (r2.ok) { var t2 = await r2.text(); if (t2.indexOf(',') >= 0) return t2; }
-  } catch(e) {}
+    var r2 = await fetch('https://api.allorigins.win/raw?url='+encodeURIComponent(CSV_URL)+t, {cache:'no-store'});
+    if (r2.ok) { var txt2=await r2.text(); if (txt2.indexOf(',')>=0) return txt2; }
+  } catch(e){}
+  // corsproxy
   try {
-    var r3 = await fetch('https://corsproxy.io/?' + encodeURIComponent(CSV_URL), {cache:'no-store'});
-    if (r3.ok) { var t3 = await r3.text(); if (t3.indexOf(',') >= 0) return t3; }
-  } catch(e) {}
-  throw new Error('Sync falhou');
+    var r3 = await fetch('https://corsproxy.io/?'+encodeURIComponent(CSV_URL), {cache:'no-store'});
+    if (r3.ok) { var txt3=await r3.text(); if (txt3.indexOf(',')>=0) return txt3; }
+  } catch(e){}
+  throw new Error('Todos os proxies falharam');
 }
 
 async function syncSheet() {
@@ -461,20 +478,25 @@ async function syncSheet() {
   btn.classList.add('loading'); btn.disabled = true;
   try {
     var csv = await fetchCSV();
-    var updated = parseSheet(csv);
+    var n = parseSheet(csv);
     var now = new Date().toLocaleTimeString('pt-BR');
     document.getElementById('lastSync').textContent = 'Sincronizado: ' + now;
-    toast(updated > 0 ? (updated + ' item(ns) atualizado(s)!') : 'Planilha sincronizada!');
+    toast(n + ' contas carregadas da planilha');
   } catch(e) {
     document.getElementById('lastSync').textContent = 'Sync falhou';
-    console.warn(e);
+    console.warn('Sync error:', e);
+    if (BILLS.length === 0) {
+      document.getElementById('list').innerHTML = '<div class="empty"><i class="ti ti-wifi-off"></i>Nao foi possivel carregar a planilha.<br>Verifique se ela esta publicada e tente novamente.</div>';
+    }
   }
   btn.classList.remove('loading'); btn.disabled = false;
   render();
 }
 
-setInterval(syncSheet, 5 * 60 * 1000);
-render();
+// Auto-sync a cada 3 minutos
+setInterval(syncSheet, 3 * 60 * 1000);
+
+// Inicia
 syncSheet();
 </script>
 </body>
